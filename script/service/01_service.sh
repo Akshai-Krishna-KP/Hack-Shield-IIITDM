@@ -70,7 +70,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y \
     python3 \
     python3-pymysql \
     python3-venv \
-    acl
+    acl curl
 
 systemctl enable --now mysql
 
@@ -131,16 +131,27 @@ install -d -o root -g root -m 0711 "$FLAG_DIR"
 # Allow user1 to traverse the flag directory without listing it.
 setfacl -m u:user1:--x "$FLAG_DIR"
 
-# Set SERVICE1_FLAG before running the script to use a different flag.
-FLAG_VALUE="${SERVICE1_FLAG:-}"
-
-if [[ -z "$FLAG_VALUE" ]]; then
-    FLAG_VALUE='HS{bind_address_0_0_0_0_is_not_a_firewall}'
+# Keep an existing flag stable across ordinary reruns. A new VM gets a
+# per-install random flag unless the organizer supplies SERVICE1_FLAG.
+if [[ ! -f "$FLAG_FILE" ]]; then
+    FLAG_VALUE="${SERVICE1_FLAG:-HS{service1_$(python3 -c 'import secrets; print(secrets.token_hex(16))')}}"
+    printf '%s\n' "$FLAG_VALUE" > "$FLAG_FILE"
 fi
-
-printf '%s\n' "$FLAG_VALUE" > "$FLAG_FILE"
 chown user1:user1 "$FLAG_FILE"
 chmod 0400 "$FLAG_FILE"
+
+# Randomize the target credential so the checked-in seed cannot bypass the
+# intended database exposure challenge.
+RAIHAN_PASSWORD="${SERVICE1_RAIHAN_PASSWORD:-$(python3 -c 'import secrets; print("hs-" + secrets.token_hex(16))')}"
+if [[ ! "$RAIHAN_PASSWORD" =~ ^[A-Za-z0-9._!@#-]{12,128}$ ]]; then
+    log_error "SERVICE1_RAIHAN_PASSWORD must be 12-128 safe printable characters (letters, digits, . _ ! @ # -)."
+    exit 1
+fi
+mysql <<SQL
+UPDATE employees.staff
+SET plaintext_password = '$RAIHAN_PASSWORD', password_hash = SHA2('$RAIHAN_PASSWORD', 256)
+WHERE username = 'Raihan';
+SQL
 
 log_success "Flag created at $FLAG_FILE"
 
@@ -191,6 +202,17 @@ systemctl restart "$SERVICE_NAME"
 if ! systemctl is-active --quiet "$SERVICE_NAME"; then
     journalctl -u "$SERVICE_NAME" -n 60 --no-pager || true
     log_error "Service failed to start."
+    exit 1
+fi
+
+if ! curl --fail --silent --show-error --max-time 3 http://127.0.0.1:9001/ >/dev/null; then
+    journalctl -u "$SERVICE_NAME" -n 60 --no-pager || true
+    log_error "Service 1 portal did not answer on port 9001."
+    exit 1
+fi
+if ! mysql --connect-timeout=3 --protocol=TCP -h 127.0.0.1 -u svc_reader --skip-password \
+    employees -e 'SELECT COUNT(*) FROM staff' >/dev/null; then
+    log_error "Service 1 MySQL seed/account check failed."
     exit 1
 fi
 

@@ -8,7 +8,7 @@ import sqlite3
 from flask import Flask, request, render_template, session, redirect, url_for
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SHOEMART_SESSION_SECRET", "change-this-lab-only-secret")
+app.secret_key = os.environ.get("SHOEMART_SESSION_SECRET") or os.urandom(32)
 DB_PATH = os.environ.get("DB_PATH", "/var/lib/hackshield/service2/shop.sqlite3")
 FLAG_PATH = "/opt/flags/flag2"
 

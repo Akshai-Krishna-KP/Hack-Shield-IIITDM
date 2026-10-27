@@ -18,6 +18,9 @@ SERVICE4_UNIT_SOURCE="$REPO_DIR/systemd/hackshield-service4.service"
 
 SERVICE4_DEST="/opt/hackshield/services/service4"
 LEGACY_SERVICE5_DEST="/opt/hackshield/services/service5"
+LEGACY_SERVICE5_NAME="hackshield-service5.service"
+LEGACY_SERVICE5_UNIT_DEST="/etc/systemd/system/$LEGACY_SERVICE5_NAME"
+LEGACY_FLAG_FILE="/opt/flags/flag_ssrf_service5"
 FLAG_DIR="/opt/flag"
 FLAG_FILE="$FLAG_DIR/flag4"
 
@@ -79,11 +82,17 @@ backup_dir() {
 }
 backup_dir "$SERVICE4_DEST" "service4"
 backup_dir "$LEGACY_SERVICE5_DEST" "legacy-service5"
+if [[ -f "$LEGACY_SERVICE5_UNIT_DEST" ]]; then
+    LEGACY_UNIT_BACKUP="/opt/hackshield/backups/legacy-service5-unit/$STAMP"
+    install -d -o root -g root -m 0700 "$LEGACY_UNIT_BACKUP"
+    cp -a "$LEGACY_SERVICE5_UNIT_DEST" "$LEGACY_UNIT_BACKUP/"
+fi
 
 # -----------------------------
 # STEP 4: Stop units before copy
 # -----------------------------
 systemctl stop "$SERVICE4_NAME" 2>/dev/null || true
+systemctl disable --now "$LEGACY_SERVICE5_NAME" 2>/dev/null || true
 
 # -----------------------------
 # STEP 5: Deploy Service 4
@@ -109,6 +118,8 @@ if [[ -d "$LEGACY_SERVICE5_DEST" ]]; then
     log_info "Removing the retired standalone Service 5 deployment..."
     rm -rf -- "$LEGACY_SERVICE5_DEST"
 fi
+rm -f -- "$LEGACY_SERVICE5_UNIT_DEST"
+rm -f -- "$LEGACY_FLAG_FILE"
 
 # -----------------------------
 # STEP 7: Create protected flag
@@ -118,8 +129,10 @@ install -d -o root -g root -m 0711 "$FLAG_DIR"
 # The service account can traverse the flag directory but cannot list it.
 setfacl -m u:user4:--x "$FLAG_DIR"
 
-FLAG_VALUE="${SERVICE4_SSRF_FLAG:-HS{ssrf_crosses_what_firewalls_cannot_stop}}"
-printf '%s\n' "$FLAG_VALUE" > "$FLAG_FILE"
+if [[ ! -f "$FLAG_FILE" ]]; then
+    FLAG_VALUE="${SERVICE4_SSRF_FLAG:-HS{service4_$(python3 -c 'import secrets; print(secrets.token_hex(16))')}}"
+    printf '%s\n' "$FLAG_VALUE" > "$FLAG_FILE"
+fi
 chown user4:user4 "$FLAG_FILE"
 chmod 0400 "$FLAG_FILE"
 log_success "SSRF flag installed at $FLAG_FILE (owner user4, mode 0400)."

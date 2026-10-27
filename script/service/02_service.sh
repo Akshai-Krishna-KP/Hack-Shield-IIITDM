@@ -20,13 +20,13 @@ DB_DIR="/var/lib/hackshield/service2"
 DB_FILE="$DB_DIR/shop.sqlite3"
 FLAG_DIR="/opt/flags"
 FLAG_FILE="$FLAG_DIR/flag2"
+SESSION_ENV_DIR="/etc/hackshield"
+SESSION_ENV_FILE="$SESSION_ENV_DIR/service2.env"
 SERVICE_NAME="hackshield-service2.service"
 UNIT_DEST="/etc/systemd/system/$SERVICE_NAME"
 EDITORS_GROUP="hs-service-editors"
 SERVICE_USER="user2"
 PORT="4444"
-FLAG_VALUE="${SERVICE2_FLAG:-HS{union_select_never_trust_a_search_box}}"
-ADMIN_PASSWORD="${SERVICE2_ADMIN_PASSWORD:-ShoeMart_Admin_2026!}"
 RESEED="${SERVICE2_RESEED:-0}"
 
 if [[ "$EUID" -ne 0 ]]; then
@@ -45,7 +45,7 @@ fi
 log_info "Installing Python, venv, SQLite CLI and ACL dependencies..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y python3 python3-venv python3-pip sqlite3 acl
+apt-get install -y python3 python3-venv python3-pip sqlite3 acl curl
 
 # 3. Deploy UI and application code
 log_info "Deploying ShoeMart application/templates/static..."
@@ -66,6 +66,7 @@ fi
 
 if [[ ! -f "$DB_FILE" ]]; then
     log_info "Seeding SQLite database using $SEED_SQL..."
+    ADMIN_PASSWORD="${SERVICE2_ADMIN_PASSWORD:-$(python3 -c 'import secrets; print(secrets.token_urlsafe(24))')}"
     python3 - "$DB_FILE" "$SEED_SQL" "$ADMIN_PASSWORD" <<'PY'
 import sqlite3, sys
 from pathlib import Path
@@ -113,6 +114,7 @@ chmod 0710 "$DB_DIR"
 # 5. Configure protected flag
 install -d -o root -g root -m 0711 "$FLAG_DIR"
 if [[ ! -f "$FLAG_FILE" ]]; then
+    FLAG_VALUE="${SERVICE2_FLAG:-HS{service2_$(python3 -c 'import secrets; print(secrets.token_hex(16))')}}"
     printf '%s\n' "$FLAG_VALUE" > "$FLAG_FILE"
     log_success "Created protected flag at $FLAG_FILE"
 else
@@ -121,6 +123,16 @@ fi
 chown "$SERVICE_USER":"$SERVICE_USER" "$FLAG_FILE"
 chmod 0400 "$FLAG_FILE"
 setfacl -m "u:${SERVICE_USER}:--x" "$FLAG_DIR"
+
+# Flask's cookie signing key must not be a published constant. systemd reads
+# this root-owned file and passes the value to the service process.
+install -d -o root -g root -m 0755 "$SESSION_ENV_DIR"
+if [[ ! -f "$SESSION_ENV_FILE" ]]; then
+    SESSION_SECRET="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')"
+    (umask 077; printf 'SHOEMART_SESSION_SECRET=%s\n' "$SESSION_SECRET" > "$SESSION_ENV_FILE")
+fi
+chown root:root "$SESSION_ENV_FILE"
+chmod 0600 "$SESSION_ENV_FILE"
 
 # 6. Prepare virtual environment & install dependencies
 log_info "Preparing Flask virtual environment..."
@@ -151,10 +163,15 @@ if ! systemctl is-active --quiet "$SERVICE_NAME"; then
     log_error "Service 2 failed to start; inspect the journal above."
     exit 1
 fi
+if ! curl --fail --silent --show-error --max-time 5 http://127.0.0.1:4444/products >/dev/null; then
+    journalctl -u "$SERVICE_NAME" -n 80 --no-pager || true
+    log_error "Service 2 storefront/database check failed on port 4444."
+    exit 1
+fi
 
 log_success "Service 2 deployed and active."
 printf '\nStorefront:   http://127.0.0.1:%s/\nProducts:     http://127.0.0.1:%s/products\nSearch:       http://127.0.0.1:%s/search?q=runner\nAdmin login:  http://127.0.0.1:%s/admin/login\nDatabase:     %s\nSeed SQL:     %s\nFlag file:    %s\nSystemd unit: %s\nUnit source:  %s\n\n' "$PORT" "$PORT" "$PORT" "$PORT" "$DB_FILE" "$SEED_SQL" "$FLAG_FILE" "$SERVICE_NAME" "$SOURCE_UNIT"
 echo "Default seeded admin username: admin"
-echo "Admin password configured for this deployment: ${ADMIN_PASSWORD}"
-echo "Synthetic data only. Keep this intentionally vulnerable service on the isolated competition network."
+echo "Admin password is generated per VM and is not printed; obtain it from the organizer if required."
+echo "The flag is generated per VM. Keep this intentionally vulnerable service on the isolated competition network."
 systemctl --no-pager --full status "$SERVICE_NAME"

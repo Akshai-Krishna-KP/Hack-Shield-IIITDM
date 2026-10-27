@@ -57,7 +57,7 @@ getent group hs-service-editors >/dev/null || {
 log_info 'Installing Python and build dependencies...'
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    python3 python3-venv python3-pip build-essential acl
+    python3 python3-venv python3-pip build-essential acl curl
 
 # Back up the existing deployed application before replacing its source.
 if [[ -d "$DEST_DIR" ]]; then
@@ -81,10 +81,6 @@ find "$DEST_DIR" -path "$VENV_DIR" -prune -o -exec chown root:hs-service-editors
 find "$DEST_DIR" -path "$VENV_DIR" -prune -o -type d -exec chmod 2775 {} +
 find "$DEST_DIR" -path "$VENV_DIR" -prune -o -type f -exec chmod 0664 {} +
 
-# user3 needs read/execute access to the application and membership in the
-# editors group for access to files and directories under the deployment.
-usermod -a -G hs-service-editors user3
-
 # Create/reuse the virtual environment at the exact path used by systemd.
 if [[ ! -x "$VENV_DIR/bin/python" ]]; then
     if [[ -e "$VENV_DIR" ]]; then
@@ -96,16 +92,18 @@ if [[ ! -x "$VENV_DIR/bin/python" ]]; then
 fi
 chown -R user3:user3 "$VENV_DIR"
 
-log_info 'Installing Flask, Mako and flask_mako into the service virtual environment...'
+log_info 'Installing Flask and Mako into the service virtual environment...'
 runuser -u user3 -- "$VENV_DIR/bin/python" -m pip install --upgrade pip
 runuser -u user3 -- "$VENV_DIR/bin/python" -m pip install \
-    'Flask<3.0' 'Werkzeug<3.0' Mako flask_mako
+    'Flask>=3.0,<4.0' 'Mako>=1.2,<2.0'
 
 # Install/update the protected challenge flag BEFORE starting the service.
 install -d -o root -g root -m 0711 "$FLAG_DIR"
 setfacl -m u:user3:--x "$FLAG_DIR"
-FLAG_VALUE="${SERVICE3_FLAG:-HS{sp00ky_f0nt_turns_into_rce}}"
-printf '%s\n' "$FLAG_VALUE" > "$FLAG_FILE"
+if [[ ! -f "$FLAG_FILE" ]]; then
+    FLAG_VALUE="${SERVICE3_FLAG:-HS{service3_$(python3 -c 'import secrets; print(secrets.token_hex(16))')}}"
+    printf '%s\n' "$FLAG_VALUE" > "$FLAG_FILE"
+fi
 chown user3:user3 "$FLAG_FILE"
 chmod 0400 "$FLAG_FILE"
 
@@ -118,6 +116,12 @@ systemctl restart "$SERVICE_NAME"
 if ! systemctl is-active --quiet "$SERVICE_NAME"; then
     journalctl -u "$SERVICE_NAME" -n 80 --no-pager || true
     log_error "$SERVICE_NAME did not start. Check the unit's WorkingDirectory and ExecStart."
+    exit 1
+fi
+if ! curl --fail --silent --show-error --max-time 5 -G \
+    http://127.0.0.1:1337/ --data-urlencode 'text=hello' >/dev/null; then
+    journalctl -u "$SERVICE_NAME" -n 80 --no-pager || true
+    log_error 'Service 3 route/template check failed on port 1337.'
     exit 1
 fi
 
