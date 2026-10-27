@@ -1,0 +1,21 @@
+[Unit]
+Description=Hack and Shield - Service 5 HackMart (Race Condition Lab)
+After=network.target
+
+[Service]
+Type=simple
+User=user5
+Group=user5
+WorkingDirectory=/opt/hackshield/services/service5
+ExecStart=/opt/hackshield/services/service5/.venv/bin/python /opt/hackshield/services/service5/app.py
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/hackshield/service5
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

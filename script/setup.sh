@@ -15,7 +15,7 @@ log_warn()    { printf '[WARN] %s\n' "$*" >&2; }
 log_error()   { printf '[ERROR] %s\n' "$*" >&2; }
 
 if [[ "$EUID" -ne 0 ]]; then
-    exec sudo --preserve-env=SERVICE1_FLAG,SERVICE1_RAIHAN_PASSWORD,SERVICE2_FLAG,SERVICE2_ADMIN_PASSWORD,SERVICE2_RESEED,SERVICE3_FLAG,SERVICE4_SSRF_FLAG \
+    exec sudo --preserve-env=SERVICE1_FLAG,SERVICE1_RAIHAN_PASSWORD,SERVICE2_FLAG,SERVICE2_ADMIN_PASSWORD,SERVICE2_RESEED,SERVICE3_FLAG,SERVICE4_SSRF_FLAG,SERVICE5_FLAG \
         bash "$SCRIPT_PATH" "$@"
 fi
 
@@ -52,7 +52,7 @@ if ! getent group "$EDITORS_GROUP" >/dev/null; then
 fi
 usermod -aG "$EDITORS_GROUP" player
 
-for number in 1 2 3 4; do
+for number in 1 2 3 4 5; do
     account="user$number"
     if ! getent passwd "$account" >/dev/null; then
         useradd --system --user-group --no-create-home --home-dir /nonexistent \
@@ -75,7 +75,7 @@ if [[ -f "$SUDOERS_FILE" ]]; then
     log_warn "Backed up existing player restart rules to $SUDOERS_BACKUP"
 fi
 cat > "$SUDOERS_FILE" <<'SUDOERS'
-player ALL=(root) NOPASSWD: /usr/bin/systemctl restart hackshield-service1.service, /usr/bin/systemctl restart hackshield-service2.service, /usr/bin/systemctl restart hackshield-service3.service, /usr/bin/systemctl restart hackshield-service4.service
+player ALL=(root) NOPASSWD: /usr/bin/systemctl restart hackshield-service1.service, /usr/bin/systemctl restart hackshield-service2.service, /usr/bin/systemctl restart hackshield-service3.service, /usr/bin/systemctl restart hackshield-service4.service, /usr/bin/systemctl restart hackshield-service5.service
 SUDOERS
 chown root:root "$SUDOERS_FILE"
 chmod 0440 "$SUDOERS_FILE"
@@ -83,8 +83,8 @@ visudo -cf "$SUDOERS_FILE"
 
 mapfile -t SERVICE_SCRIPTS < <(find "$SERVICE_DIR" -maxdepth 1 -type f \
     -name '[0-9][0-9]_service.sh' -print | sort)
-if [[ "${#SERVICE_SCRIPTS[@]}" -ne 4 ]]; then
-    log_error "Expected four numbered service deployment scripts in $SERVICE_DIR; found ${#SERVICE_SCRIPTS[@]}."
+if [[ "${#SERVICE_SCRIPTS[@]}" -ne 5 ]]; then
+    log_error "Expected five numbered service deployment scripts in $SERVICE_DIR; found ${#SERVICE_SCRIPTS[@]}."
     exit 1
 fi
 
@@ -97,5 +97,5 @@ done
 
 log_success "Hack & Shield service provisioning completed."
 log_info "Log out and back in as player for the hs-service-editors group membership to take effect."
-log_info "Configure QEMU hostfwd rules on the host for ports 9001, 3306, 4444, 1337, and 7007. Do not forward 7108."
-log_info "Services 1-4 are deployed; challenge selection, scoring, monitoring, network isolation, and VM resets are not provisioned by this script."
+log_info "Configure QEMU hostfwd rules on the host for ports 9001, 3306, 4444, 1337, 7007, and 8005. Do not forward 7108."
+log_info "Services 1-5 are deployed; challenge selection, scoring, monitoring, network isolation, and VM resets are not provisioned by this script."
