@@ -1,0 +1,21 @@
+[Unit]
+Description=Hack and Shield - Service 2 ShoeMart (UNION SQLi Lab)
+After=network.target
+
+[Service]
+Type=simple
+User=user2
+Group=user2
+WorkingDirectory=/opt/hackshield/services/service2
+Environment=DB_PATH=/var/lib/hackshield/service2/shop.sqlite3
+ExecStart=/opt/hackshield/services/service2/.venv/bin/python /opt/hackshield/services/service2/app.py
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

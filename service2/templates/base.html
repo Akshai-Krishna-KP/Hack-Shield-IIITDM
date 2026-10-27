@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f2">
+  <title>{% block title %}ShoeMart — Move in your own direction{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="announcement">Complimentary delivery on orders over ₹2,999 <span>•</span> Easy 14-day returns</div>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('index') }}" aria-label="ShoeMart home"><span class="brand-mark">S</span><span>shoe<span class="brand-light">mart</span><small>STEP INTO SOMETHING BETTER</small></span></a>
+    <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <nav class="main-nav">
+      <a class="{{ 'active' if active == 'home' else '' }}" href="{{ url_for('index') }}">Home</a>
+      <a class="{{ 'active' if active == 'products' else '' }}" href="{{ url_for('products') }}">Shop all</a>
+      <a href="{{ url_for('products') }}#new-arrivals">New arrivals</a>
+      <a class="{{ 'active' if active == 'about' else '' }}" href="{{ url_for('about') }}">Our story</a>
+    </nav>
+    <div class="header-actions">
+      <form class="header-search" action="{{ url_for('search') }}" method="get"><span>⌕</span><input name="q" aria-label="Search shoes" placeholder="Find your pair…"><button aria-label="Submit search">↗</button></form>
+      <a class="admin-link" href="{{ url_for('admin_login_form') }}">Account ↗</a>
+    </div>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div><a class="brand brand-footer" href="{{ url_for('index') }}"><span class="brand-mark">S</span><span>shoe<span class="brand-light">mart</span><small>STEP INTO SOMETHING BETTER</small></span></a><p>Made for the miles, moments, and everything in between.</p></div>
+      <div><h4>Explore</h4><a href="{{ url_for('products') }}">All footwear</a><a href="{{ url_for('about') }}">Our story</a><a href="{{ url_for('contact') }}">Contact us</a></div>
+      <div><h4>Customer care</h4><a href="{{ url_for('contact') }}">Shipping & returns</a><a href="{{ url_for('contact') }}">Size guide</a><a href="{{ url_for('contact') }}">FAQs</a></div>
+      <div><h4>Stay in step</h4><p>Notes on new drops, good design, and better days.</p><form class="newsletter" onsubmit="event.preventDefault();this.querySelector('button').textContent='You’re on the list ✓';"><input type="email" placeholder="Your email address" required><button aria-label="Subscribe">↗</button></form></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 ShoeMart Studio</span><span>Designed for everyday movement.</span><span><a href="{{ url_for('admin_login_form') }}">Staff portal</a></span></div>
+  </footer>
+  <script src="{{ url_for('static', filename='js/site.js') }}"></script>
+</body>
+</html>

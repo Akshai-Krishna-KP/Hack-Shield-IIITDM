@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Shop All Footwear — ShoeMart{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="eyebrow">THE FULL LINEUP / 2026</div><h1>Find your <em>everyday.</em></h1><p>From first-light runs to last-minute plans. There's a pair for that.</p></section>
+<section class="section product-section"><div class="product-toolbar"><span>THE COLLECTION <b>· {{ products|length }} styles</b></span><form action="{{ url_for('search') }}" method="get" class="toolbar-search"><input name="q" placeholder="Search the collection"><button>Search ↗</button></form></div>
+<div class="product-grid">
+{% for p in products %}
+<a class="product-card" href="{{ url_for('product_detail', product_id=p[0]) }}"><div class="product-image product-tone-{{ loop.index0 % 4 }}"><span class="product-tag">{{ 'BESTSELLER' if loop.index == 1 else ('NEW ARRIVAL' if loop.index == 5 else 'SHOEMART ESSENTIAL') }}</span><div class="product-graphic graphic-{{ loop.index0 % 4 }}"><span>{{ ['↗','✳','⌁','◒'][loop.index0 % 4] }}</span></div><span class="quick-view">View details ↗</span></div><div class="product-meta"><div><h3>{{ p[1] }}</h3><p>{{ ['Everyday runner','Leather essential','Trail-ready comfort','Relaxed canvas'][loop.index0 % 4] }}</p></div><strong>₹{{ "{:,.0f}".format(p[2]|float) }}</strong></div><div class="product-rating">★★★★★ <span>({{ 28 + loop.index * 13 }} reviews)</span></div></a>
+{% endfor %}
+</div></section>
+{% endblock %}

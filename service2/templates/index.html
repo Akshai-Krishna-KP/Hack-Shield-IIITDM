@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}ShoeMart — Find your next everyday favourite{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE EVERYDAY COLLECTION / 2026</div>
+    <h1>Good days<br>start from<br><em>the ground up.</em></h1>
+    <p>Thoughtfully made footwear for wherever the day takes you. Meet your next favourite pair.</p>
+    <div class="hero-buttons"><a class="button button-dark" href="{{ url_for('products') }}">Explore the collection <span>↗</span></a><a class="text-link" href="{{ url_for('about') }}">Why ShoeMart <span>→</span></a></div>
+    <div class="hero-proof"><div class="proof-avatars"><span>R</span><span>A</span><span>M</span></div><div><strong>Loved by 12,000+ walkers</strong><small>4.9/5 average customer rating</small></div></div>
+  </div>
+  <div class="hero-art"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><div class="hero-label label-top">DESIGNED TO MOVE</div><div class="hero-label label-bottom">01 / EVERYDAY ICONS</div>
+    <div class="hero-shoe" aria-label="Illustration of a modern sneaker"><svg viewBox="0 0 620 360" role="img" aria-label="Cream and forest green sneaker illustration"><defs><linearGradient id="upper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4e9d5"/><stop offset="1" stop-color="#d9c8aa"/></linearGradient><linearGradient id="sole" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdf5"/><stop offset="1" stop-color="#c9c2b4"/></linearGradient></defs><ellipse cx="300" cy="286" rx="240" ry="24" fill="#172f26" opacity=".12"/><path d="M67 218 Q112 210 153 165 L219 83 Q244 59 271 81 L354 151 Q402 186 485 199 Q528 206 548 237 L548 254 Q542 275 506 278 L111 278 Q65 275 59 250 Q55 231 67 218Z" fill="url(#upper)" stroke="#b8aa91" stroke-width="3"/><path d="M219 83 Q243 105 270 131 L323 183 L273 208 L203 154 L169 180 L129 215 L88 223 L153 165Z" fill="#244b3a"/><path d="M273 208 L323 183 L368 204 L421 215 L450 240 L346 244 L275 230Z" fill="#d5c4a5"/><path d="M68 237 Q133 250 213 245 L375 248 Q472 251 548 237 L548 255 Q541 278 506 280 L111 280 Q65 277 59 252Z" fill="url(#sole)" stroke="#b7b0a2" stroke-width="3"/><path d="M108 267 L494 267" stroke="#b0a99c" stroke-width="3" stroke-dasharray="8 7"/><path d="M225 116 L300 178 M210 133 L284 193 M195 150 L267 207" stroke="#fff8e9" stroke-width="7" stroke-linecap="round"/><path d="M235 101 L277 118 L256 139 L216 121Z" fill="#315d48"/><path d="M368 204 Q390 222 402 246" fill="none" stroke="#b4a486" stroke-width="4"/><circle cx="157" cy="231" r="5" fill="#9c8d72"/><circle cx="174" cy="224" r="5" fill="#9c8d72"/><circle cx="191" cy="216" r="5" fill="#9c8d72"/></svg></div>
+    <div class="floating-note"><span class="note-icon">✳</span><span><strong>Light on your feet.</strong><small>Every single day.</small></span></div>
+  </div>
+</section>
+<section class="trust-strip"><div><strong>01</strong><span>Considered materials</span></div><div><strong>02</strong><span>All-day comfort</span></div><div><strong>03</strong><span>Made to last longer</span></div><div><strong>04</strong><span>Easy, no-fuss returns</span></div></section>
+<section class="section collection-section" id="new-arrivals"><div class="section-heading"><div><div class="eyebrow">YOUR NEXT EVERYDAY PAIR</div><h2>Good shoes. <em>Better stories.</em></h2></div><a class="text-link" href="{{ url_for('products') }}">Shop all footwear <span>→</span></a></div>
+  <div class="category-grid">
+    <a class="category-card category-running" href="{{ url_for('products') }}"><div class="category-number">01 / MOVE</div><div class="category-illustration running-shoe">↗</div><div class="category-info"><div><h3>Run your way</h3><p>Lightweight everyday runners</p></div><span class="round-arrow">↗</span></div></a>
+    <a class="category-card category-classic" href="{{ url_for('products') }}"><div class="category-number">02 / KEEP IT CLASSIC</div><div class="category-illustration classic-shoe">✳</div><div class="category-info"><div><h3>Everyday classics</h3><p>Quiet style, lasting comfort</p></div><span class="round-arrow">↗</span></div></a>
+    <a class="category-card category-trail" href="{{ url_for('products') }}"><div class="category-number">03 / GET OUT THERE</div><div class="category-illustration trail-shoe">⌁</div><div class="category-info"><div><h3>Take the long way</h3><p>Grip for the great outdoors</p></div><span class="round-arrow">↗</span></div></a>
+  </div>
+</section>
+<section class="quote-band"><div class="quote-mark">“</div><blockquote>Less fuss. More feeling.<br><em>More places to go.</em></blockquote><p>THE SHOEMART WAY — SINCE 2019</p></section>
+<section class="newsletter-wide"><div><div class="eyebrow">A LITTLE SOMETHING GOOD</div><h2>Good things are<br>always <em>in motion.</em></h2></div><form class="newsletter newsletter-large" onsubmit="event.preventDefault();this.querySelector('button').textContent='Subscribed ✓';"><input type="email" placeholder="Enter your email address" required><button>Join the list ↗</button><small>Occasional notes only. No noise, promise.</small></form></section>
+{% endblock %}
