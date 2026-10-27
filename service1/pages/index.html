@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f8fb"><title>Sign in | Northstar</title>
+<link rel="icon" href="/static/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/css/base.css"><link rel="stylesheet" href="/static/css/components.css">
+<link rel="stylesheet" href="/static/css/login.css"><link rel="stylesheet" href="/static/css/responsive.css">
+</head><body class="login-page">
+<header class="site-header header-light"><a class="brand" href="/"><img src="/static/assets/mark.svg" alt="" class="brand-mark"><span>northstar<span class="brand-subtitle">Business workspace</span></span></a>
+<nav class="header-nav"><a href="/about">About us</a><a href="/help">Support</a><a class="nav-contact" href="/help">Contact</a></nav></header>
+<main class="login-layout"><section class="login-intro"><div class="kicker"><span class="kicker-line"></span> YOUR WORKSPACE, CONNECTED</div>
+<h1>Good work starts<br>with <span>the right space.</span></h1><p class="intro-copy">Sign in to access your team workspace, company resources, and the tools that keep your work moving forward.</p>
+<div class="trust-row"><div class="trust-icon">✓</div><div><strong>A simpler way to work</strong><span>One account for your company workspace</span></div></div>
+<div class="trust-row"><div class="trust-icon">⌁</div><div><strong>Security built in</strong><span>Your account and information matter to us</span></div></div>
+<img class="login-art" src="/static/assets/workspace.svg" alt="Illustration of a team working together">
+</section><section class="login-card-wrap"><div class="login-card">
+<div class="card-heading"><div class="mini-mark">N</div><div><h2>Welcome back</h2><p>Enter your details to sign in.</p></div></div>
+{{notice}}
+<form action="/login" method="post" class="login-form" autocomplete="on">
+<div class="form-field"><label for="user">Work username</label><input id="user" name="user" type="text" placeholder="Your username" value="{{username}}" autocomplete="username" required></div>
+<div class="form-field"><div class="label-row"><label for="pass">Password</label><a href="/help">Forgot password?</a></div><div class="password-wrap"><input id="pass" name="pass" type="password" placeholder="Enter your password" autocomplete="current-password" required><button type="button" class="password-toggle" data-toggle-password>Show</button></div></div>
+<label class="check-row"><input type="checkbox" name="remember"><span>Keep me signed in</span></label>
+<button class="button button-primary button-full" type="submit">Sign in <span aria-hidden="true">→</span></button>
+<p class="form-footnote"><span class="lock-icon">⌑</span> Your sign-in is protected by company security controls.</p>
+</form></div><p class="card-help">Having trouble accessing your account? <a href="/help">Get help</a></p></section></main>
+<footer class="site-footer login-footer"><span>© 2026 Northstar Systems</span><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/status">System status</a></div><span class="footer-region">English (US) ⌄</span></footer>
+<script src="/static/js/site.js"></script><script src="/static/js/login.js"></script></body></html>

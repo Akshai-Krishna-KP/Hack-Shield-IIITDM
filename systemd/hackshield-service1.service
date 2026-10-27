@@ -1,0 +1,20 @@
+[Unit]
+Description=Hack and Shield - Service 1 Enterprise Portal
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=user1
+Group=user1
+WorkingDirectory=/opt/hackshield/services/service1
+ExecStart=/usr/bin/python3 /opt/hackshield/services/service1/server.py
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target
