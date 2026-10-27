@@ -1,0 +1,22 @@
+[Unit]
+Description=Hack and Shield - Service 3 Name Spookifier (Mako SSTI Lab)
+After=network.target
+
+[Service]
+Type=simple
+User=user3
+Group=user3
+WorkingDirectory=/opt/hackshield/services/service3
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=FLASK_APP=run.py
+ExecStart=/opt/hackshield/services/service3/.venv/bin/python /opt/hackshield/services/service3/run.py
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target
