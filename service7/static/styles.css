@@ -1,0 +1,279 @@
+
+:root {
+    --bg: #0b1120;
+    --panel: #121d30;
+    --border: #27364d;
+    --text: #e8eef7;
+    --muted: #9baac0;
+    --accent: #48c6a8;
+    --accent-dark: #102e30;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+a:hover {
+    opacity: 0.8;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 7%;
+    border-bottom: 1px solid var(--border);
+    background: #0e1728;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text);
+}
+
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    background: var(--accent-dark);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.brand strong,
+.brand small {
+    display: block;
+    letter-spacing: 2px;
+}
+
+.brand small {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.portal-label,
+.eyebrow {
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.nav {
+    display: flex;
+    gap: 24px;
+    padding: 14px 7%;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+.nav a {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.container {
+    width: min(1100px, 86%);
+    min-height: 65vh;
+    margin: 0 auto;
+    padding: 48px 0;
+}
+
+.hero {
+    padding: 60px 0;
+    max-width: 720px;
+}
+
+h1 {
+    margin: 10px 0;
+    font-size: clamp(32px, 5vw, 52px);
+    line-height: 1.15;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+p {
+    color: var(--muted);
+}
+
+.section {
+    margin-top: 30px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin: 28px 0;
+}
+
+.card,
+.login-panel,
+.admin-panel {
+    padding: 26px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.card h3 {
+    margin-top: 8px;
+}
+
+.card-icon {
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+.button {
+    display: inline-block;
+    padding: 12px 20px;
+    border: 0;
+    border-radius: 5px;
+    background: var(--accent);
+    color: #071a19;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.hero .button {
+    margin-top: 18px;
+}
+
+.full {
+    width: 100%;
+    margin-top: 24px;
+}
+
+.login-panel {
+    max-width: 440px;
+    margin: 10px auto;
+}
+
+.login-panel h1 {
+    font-size: 34px;
+}
+
+label {
+    display: block;
+    margin: 18px 0 7px;
+    font-size: 13px;
+}
+
+input {
+    width: 100%;
+    padding: 13px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+}
+
+input:focus {
+    outline: 1px solid var(--accent);
+}
+
+.muted,
+.hint {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.hint {
+    text-align: center;
+    margin-top: 24px;
+}
+
+.alert {
+    margin: 20px 0;
+    padding: 12px;
+    color: #ffb4b4;
+    background: #351b26;
+    border: 1px solid #743644;
+    border-radius: 5px;
+}
+
+.page-heading {
+    margin-bottom: 32px;
+}
+
+.admin-panel {
+    margin-top: 35px;
+    border-color: var(--accent);
+}
+
+.flag {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 24px;
+    padding: 20px;
+    background: #091b20;
+    border: 1px dashed var(--accent);
+    overflow-wrap: anywhere;
+}
+
+.flag span {
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+
+.flag code {
+    color: #d5fff2;
+    font-size: 15px;
+}
+
+footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 24px 7%;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+}
+
+@media (max-width: 700px) {
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    .nav {
+        gap: 14px;
+    }
+
+    .portal-label {
+        display: none;
+    }
+
+    .container {
+        width: 90%;
+        padding-top: 30px;
+    }
+
+    footer {
+        flex-direction: column;
+    }
+}

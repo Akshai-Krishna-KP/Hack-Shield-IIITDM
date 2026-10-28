@@ -1,0 +1,15 @@
+
+{% extends "base.html" %}
+{% block title %}Authentication Error | ByteForge Technologies{% endblock %}
+
+{% block content %}
+<section class="login-panel">
+    <span class="eyebrow">AUTHENTICATION</span>
+    <h1>Access could not be verified</h1>
+    <div class="alert">{{ message }}</div>
+    <p class="muted">
+        The supplied authentication information is invalid.
+    </p>
+    <a class="button" href="/login">Return to Login</a>
+</section>
+{% endblock %}

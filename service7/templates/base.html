@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}ByteForge Employee Portal{% endblock %}</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/">
+            <span class="brand-mark">B</span>
+            <span>
+                <strong>BYTEFORGE</strong>
+                <small>TECHNOLOGIES</small>
+            </span>
+        </a>
+        <span class="portal-label">EMPLOYEE PORTAL</span>
+    </header>
+
+    <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/profile">Profile</a>
+        <a href="/announcements">Announcements</a>
+        <a href="/documents">HR Documents</a>
+        <a href="/logout">Logout</a>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <span>© ByteForge Technologies</span>
+        <span>Internal Employee Services</span>
+    </footer>
+</body>
+</html>

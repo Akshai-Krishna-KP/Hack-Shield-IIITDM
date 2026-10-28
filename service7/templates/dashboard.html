@@ -1,0 +1,49 @@
+
+{% extends "base.html" %}
+{% block title %}Dashboard | ByteForge Technologies{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <span class="eyebrow">INTERNAL WORKSPACE</span>
+    <h1>{{ role }} Dashboard</h1>
+    <p>Welcome to ByteForge Technologies.</p>
+</section>
+
+<div class="cards">
+    <article class="card">
+        <span class="card-icon">01</span>
+        <h3>Employee Profile</h3>
+        <p>Review employee account information.</p>
+        <a href="/profile">Open profile →</a>
+    </article>
+
+    <article class="card">
+        <span class="card-icon">02</span>
+        <h3>Announcements</h3>
+        <p>View internal company updates.</p>
+        <a href="/announcements">View announcements →</a>
+    </article>
+
+    <article class="card">
+        <span class="card-icon">03</span>
+        <h3>HR Documents</h3>
+        <p>Browse employee policies and documents.</p>
+        <a href="/documents">Browse documents →</a>
+    </article>
+</div>
+
+{% if role == "Administrator" %}
+<section class="admin-panel">
+    <span class="eyebrow">PRIVILEGED AREA</span>
+    <h2>Administrator Dashboard</h2>
+    <p>
+        Administrative access confirmed.
+        You have reached the restricted HR workspace.
+    </p>
+    <div class="flag">
+        <span>CHALLENGE FLAG</span>
+        <code>{{ flag }}</code>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

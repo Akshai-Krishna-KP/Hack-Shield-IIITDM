@@ -1,0 +1,36 @@
+
+{% extends "base.html" %}
+{% block title %}Profile | ByteForge Technologies{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <span class="eyebrow">BYTEFORGE TECHNOLOGIES</span>
+    <h1>My Profile</h1>
+    <p>Employee account information and access details.</p>
+</section>
+
+<div class="card profile-card">
+    <span class="eyebrow">ACCOUNT INFORMATION</span>
+    <h2>{{ role }} Profile</h2>
+
+    <p><strong>Name:</strong>
+        {% if role == "Administrator" %}
+            HR Administrator
+        {% else %}
+            Employee User
+        {% endif %}
+    </p>
+
+    <p><strong>Employee ID:</strong> {{ employee_id }}</p>
+    <p><strong>Department:</strong> {{ department }}</p>
+    <p><strong>Access Level:</strong> {{ access_level }}</p>
+
+    {% if role == "Administrator" %}
+        <div class="admin-panel">
+            <h3>Administrative Privileges</h3>
+            <p>You have access to privileged HR resources.</p>
+            <a href="/dashboard">Open Admin Dashboard →</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

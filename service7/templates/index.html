@@ -1,0 +1,33 @@
+
+{% extends "base.html" %}
+{% block title %}Home | ByteForge Technologies{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <span class="eyebrow">BYTEFORGE TECHNOLOGIES</span>
+    <h1>Employee Portal</h1>
+    <p>
+        Your central workspace for company announcements,
+        employee information, and HR resources.
+    </p>
+    <a class="button" href="/login">Employee Login →</a>
+</section>
+
+<section class="section">
+    <h2>Company Services</h2>
+    <div class="cards">
+        <article class="card">
+            <h3>Announcements</h3>
+            <p>Read company updates and internal notices.</p>
+        </article>
+        <article class="card">
+            <h3>Employee Profile</h3>
+            <p>View your employee information.</p>
+        </article>
+        <article class="card">
+            <h3>HR Documents</h3>
+            <p>Access employee policies and HR resources.</p>
+        </article>
+    </div>
+</section>
+{% endblock %}
