@@ -1,0 +1,21 @@
+[Unit]
+Description=Hack and Shield - Vulnerable Service 8 (JWT)
+After=network.target
+
+[Service]
+Type=simple
+User=user8
+Group=user8
+WorkingDirectory=/opt/hackshield/services/service8
+EnvironmentFile=/etc/hackshield/service8.env
+ExecStart=/opt/hackshield/services/service8/.venv/bin/python /opt/hackshield/services/service8/app.py
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target
