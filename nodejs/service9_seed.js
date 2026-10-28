@@ -3,6 +3,11 @@
 
 const dbName = process.env.MONGO_DB_NAME || "blockstar_internal";
 const targetDb = db.getSiblingDB(dbName);
+const serviceFlag = process.env.SERVICE9_FLAG;
+
+if (!serviceFlag) {
+    throw new Error("SERVICE9_FLAG must be set to the protected Service 9 flag before seeding.");
+}
 
 function genDevToken() {
     // Fail loudly rather than fall back to a predictable generator.
@@ -164,6 +169,7 @@ const builds = [
         platform: "Classified",
         size_mb: 94210,
         classified: true,
+        flag: serviceFlag,
         active: true,
         display_order: 99
     }

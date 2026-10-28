@@ -37,7 +37,7 @@ SERVICE_NAME="hackshield-service9.service"
 UNIT_DEST="/etc/systemd/system/$SERVICE_NAME"
 EDITORS_GROUP="hs-service-editors"
 SERVICE_USER="user9"
-PORT="8009"
+PORT="5002"
 
 MONGO_SERIES="${MONGODB_SERIES:-8.0}"
 MONGO_CONF="/etc/mongod.conf"
@@ -83,6 +83,10 @@ grep -Fq "EnvironmentFile=$ENV_FILE" "$UNIT_SOURCE" || {
     log_error "Systemd unit must set EnvironmentFile=$ENV_FILE (this is how the authenticated MONGO_URI reaches the app)."
     exit 1
 }
+grep -Fq "Environment=PORT=$PORT" "$UNIT_SOURCE" || {
+    log_error "Systemd unit must set Environment=PORT=$PORT."
+    exit 1
+}
 
 # --------------------------------------------------
 # STEP 2: Install dependencies (Python + MongoDB + mongosh)
@@ -107,6 +111,15 @@ if ! command -v mongod >/dev/null 2>&1 || ! command -v mongosh >/dev/null 2>&1; 
     DEBIAN_FRONTEND=noninteractive apt-get install -y mongodb-org-server mongodb-mongosh
 else
     log_warn "mongod and mongosh already installed; skipping MongoDB repository setup."
+fi
+
+if [[ ! -f "$MONGO_CONF" ]]; then
+    log_error "MongoDB configuration not found: $MONGO_CONF"
+    exit 1
+fi
+if grep -Eq '^[[:space:]]*(bindIpAll:[[:space:]]*true|bindIp:.*(0\.0\.0\.0|::))' "$MONGO_CONF"; then
+    log_error "MongoDB in $MONGO_CONF is configured to listen on a non-loopback interface. Restrict bindIp to loopback before deploying Service 9."
+    exit 1
 fi
 
 # --------------------------------------------------
@@ -203,56 +216,7 @@ S9_URI="$(grep -E '^MONGO_URI=' "$ENV_FILE" | head -n1 | cut -d= -f2-)"
 [[ -n "$S9_URI" ]] || { log_error "MONGO_URI missing from $ENV_FILE"; exit 1; }
 
 # --------------------------------------------------
-# STEP 7: Apply the protected seed file
-# (preserved on reruns unless SERVICE9_RESEED=1)
-# --------------------------------------------------
-
-install -d -o root -g root -m 0755 "$PROTECTED_DIR"
-# 0600: the seed holds the per-game dev tokens.
-install -o root -g root -m 0600 "$SEED_SOURCE" "$SEED_FILE"
-
-BUILD_COUNT="$(mongosh --quiet "$S9_URI" --eval 'db.builds.countDocuments({})' 2>/dev/null | tail -n1 | tr -d '[:space:]')" || BUILD_COUNT=""
-[[ "$BUILD_COUNT" =~ ^[0-9]+$ ]] || BUILD_COUNT=0
-
-if [[ "${SERVICE9_RESEED:-0}" == "1" || "$BUILD_COUNT" -eq 0 ]]; then
-    if [[ "${SERVICE9_RESEED:-0}" == "1" ]]; then
-        log_warn "SERVICE9_RESEED=1: dropping the existing builds collection."
-        mongosh --quiet "$S9_URI" --eval 'db.builds.drop()' >/dev/null
-    fi
-    log_info "Applying $SEED_FILE to $MONGO_DB_NAME..."
-    MONGO_DB_NAME="$MONGO_DB_NAME" mongosh --quiet "$S9_URI" --file "$SEED_FILE"
-    log_success "Database seed applied."
-else
-    log_warn "Existing builds collection preserved ($BUILD_COUNT documents)."
-fi
-
-# --------------------------------------------------
-# STEP 8: Require authentication on MongoDB, loopback only
-# (players cannot read the build tokens straight from the database)
-# --------------------------------------------------
-
-if [[ ! -f "$MONGO_CONF" ]]; then
-    log_error "MongoDB configuration not found: $MONGO_CONF"
-    exit 1
-fi
-
-if ! grep -Eq '^[[:space:]]+authorization:[[:space:]]*enabled' "$MONGO_CONF"; then
-    cp -a "$MONGO_CONF" "$MONGO_CONF.backup.$(date +%Y%m%d-%H%M%S)"
-    if grep -Eq '^security:' "$MONGO_CONF"; then
-        sed -i '/^security:/a\  authorization: enabled' "$MONGO_CONF"
-    else
-        printf '\nsecurity:\n  authorization: enabled\n' >> "$MONGO_CONF"
-    fi
-    systemctl restart mongod
-    log_success "MongoDB authorization enabled."
-fi
-
-if grep -Eq '^[[:space:]]*bindIp:.*0\.0\.0\.0' "$MONGO_CONF"; then
-    log_warn "mongod is bound to 0.0.0.0 in $MONGO_CONF; Service 9 only needs 127.0.0.1."
-fi
-
-# --------------------------------------------------
-# STEP 9: Protected flag
+# STEP 7: Protected flag in the repository convention
 # --------------------------------------------------
 
 install -d -o root -g root -m 0711 "$FLAG_DIR"
@@ -272,6 +236,51 @@ else
 fi
 chown "$SERVICE_USER:$SERVICE_USER" "$FLAG_FILE"
 chmod 0400 "$FLAG_FILE"
+
+# --------------------------------------------------
+# STEP 8: Apply the protected seed file
+# (preserved on reruns unless SERVICE9_RESEED=1)
+# --------------------------------------------------
+
+install -d -o root -g root -m 0755 "$PROTECTED_DIR"
+# 0600: the seed holds the per-game dev tokens.
+install -o root -g root -m 0600 "$SEED_SOURCE" "$SEED_FILE"
+
+BUILD_COUNT="$(mongosh --quiet "$S9_URI" --eval 'db.builds.countDocuments({})' 2>/dev/null | tail -n1 | tr -d '[:space:]')" || BUILD_COUNT=""
+[[ "$BUILD_COUNT" =~ ^[0-9]+$ ]] || BUILD_COUNT=0
+
+if [[ "${SERVICE9_RESEED:-0}" == "1" || "$BUILD_COUNT" -eq 0 ]]; then
+    if [[ "${SERVICE9_RESEED:-0}" == "1" ]]; then
+        log_warn "SERVICE9_RESEED=1: dropping the existing builds collection."
+        mongosh --quiet "$S9_URI" --eval 'db.builds.drop()' >/dev/null
+    fi
+    log_info "Applying $SEED_FILE to $MONGO_DB_NAME..."
+    SERVICE9_FLAG="$(<"$FLAG_FILE")" MONGO_DB_NAME="$MONGO_DB_NAME" mongosh --quiet "$S9_URI" --file "$SEED_FILE"
+    log_success "Database seed applied."
+else
+    log_warn "Existing builds collection preserved ($BUILD_COUNT documents)."
+fi
+
+# Keep the classified document's flag aligned with the protected flag file,
+# including on reruns where the rest of the collection is preserved.
+SERVICE9_FLAG="$(<"$FLAG_FILE")" mongosh --quiet "$S9_URI" --eval \
+    'db.builds.updateOne({game_id: "gta7", classified: true}, {$set: {flag: process.env.SERVICE9_FLAG}})' >/dev/null
+
+# --------------------------------------------------
+# STEP 9: Require authentication on MongoDB, loopback only
+# (players cannot read the build tokens straight from the database)
+# --------------------------------------------------
+
+if ! grep -Eq '^[[:space:]]+authorization:[[:space:]]*enabled' "$MONGO_CONF"; then
+    cp -a "$MONGO_CONF" "$MONGO_CONF.backup.$(date +%Y%m%d-%H%M%S)"
+    if grep -Eq '^security:' "$MONGO_CONF"; then
+        sed -i '/^security:/a\  authorization: enabled' "$MONGO_CONF"
+    else
+        printf '\nsecurity:\n  authorization: enabled\n' >> "$MONGO_CONF"
+    fi
+    systemctl restart mongod
+    log_success "MongoDB authorization enabled."
+fi
 
 # --------------------------------------------------
 # STEP 10: Install systemd unit

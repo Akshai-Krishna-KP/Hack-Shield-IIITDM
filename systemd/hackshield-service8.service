@@ -8,6 +8,7 @@ User=user8
 Group=user8
 WorkingDirectory=/opt/hackshield/services/service8
 EnvironmentFile=/etc/hackshield/service8.env
+Environment=PORT=5001
 ExecStart=/opt/hackshield/services/service8/.venv/bin/python /opt/hackshield/services/service8/app.py
 Restart=on-failure
 RestartSec=2

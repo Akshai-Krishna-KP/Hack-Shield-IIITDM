@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
-from pathlib import Path
 import secrets
+from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
 from pymongo import MongoClient
@@ -11,11 +11,7 @@ from pymongo.errors import PyMongoError
 # Paths and application setup
 # --------------------------------------------------
 
-BASE_DIR = Path(__file__).resolve().parent
 ENV_FILE = Path(os.environ.get("SERVICE9_ENV_FILE", "/etc/hackshield/service9.env"))
-
-PRIMARY_FLAG_PATH = Path(os.environ.get("FLAG_PATH", "/opt/flags/flag9"))
-FALLBACK_FLAG_PATH = Path("/opt/flag/flag9")
 
 app = Flask(__name__)
 
@@ -49,16 +45,6 @@ COLLECTION_NAME = "builds"
 mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
 db = mongo_client[DB_NAME]
 builds = db[COLLECTION_NAME]
-
-
-def load_flag():
-    for path in (PRIMARY_FLAG_PATH, FALLBACK_FLAG_PATH):
-        try:
-            if path.exists():
-                return path.read_text(encoding="utf-8").strip()
-        except OSError:
-            continue
-    return os.environ.get("SERVICE9_FLAG", "HS{blockstar_nosql_unreleased_asset_leaked}")
 
 
 # --------------------------------------------------
@@ -155,7 +141,7 @@ def download_build():
         ),
     }
     if record.get("classified"):
-        response["flag"] = load_flag()
+        response["flag"] = record.get("flag")
 
     return jsonify(response)
 
@@ -170,5 +156,5 @@ def not_found(_error):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8009))
+    port = int(os.environ.get("PORT", 5002))
     app.run(host="0.0.0.0", port=port, threaded=True, debug=False)

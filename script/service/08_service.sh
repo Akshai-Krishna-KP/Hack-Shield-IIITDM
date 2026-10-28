@@ -33,7 +33,7 @@ SERVICE_NAME="hackshield-service8.service"
 UNIT_DEST="/etc/systemd/system/$SERVICE_NAME"
 EDITORS_GROUP="hs-service-editors"
 SERVICE_USER="user8"
-PORT="8008"
+PORT="5001"
 
 if [[ "$EUID" -ne 0 ]]; then
     log_info "Re-running with sudo. For overrides, use sudo -E with SERVICE8_FLAG / SERVICE8_JWT_SECRET."
@@ -75,6 +75,10 @@ grep -Fq "$DEST_DIR/app.py" "$UNIT_SOURCE" || {
 }
 grep -Fq "EnvironmentFile=$ENV_FILE" "$UNIT_SOURCE" || {
     log_error "Systemd unit must set EnvironmentFile=$ENV_FILE (this is how the real JWT_SECRET reaches the app instead of the hardcoded fallback in challenge_fs/.env)."
+    exit 1
+}
+grep -Fq "Environment=PORT=$PORT" "$UNIT_SOURCE" || {
+    log_error "Systemd unit must set Environment=PORT=$PORT."
     exit 1
 }
 

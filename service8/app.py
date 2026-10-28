@@ -13,9 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent
 ENV_FILE = Path(os.environ.get("SERVICE8_ENV_FILE", "/etc/hackshield/service8.env"))
 LEGACY_CONFIG_FILE = (BASE_DIR / "challenge_fs" / ".env").resolve()
 
-# Support both /opt/flags/flag8 and /opt/flag/flag8 conventions used in the repo
-PRIMARY_FLAG_PATH = Path(os.environ.get("FLAG_PATH", "/opt/flags/flag8"))
-FALLBACK_FLAG_PATH = Path("/opt/flag/flag8")
+FLAG_PATH = Path("/opt/flag/flag8")
 
 app = Flask(__name__)
 
@@ -41,13 +39,7 @@ def load_config():
 
 
 def load_flag():
-    for path in (PRIMARY_FLAG_PATH, FALLBACK_FLAG_PATH):
-        try:
-            if path.exists():
-                return path.read_text(encoding="utf-8").strip()
-        except OSError:
-            continue
-    return os.environ.get("SERVICE8_FLAG", "HS{jwt_legacy_header_claim_escalation}")
+    return FLAG_PATH.read_text(encoding="utf-8").strip()
 
 
 CONFIG = load_config()
@@ -285,7 +277,7 @@ def not_found(_error):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8008))
+    port = int(os.environ.get("PORT", 5001))
     app.run(
         host="0.0.0.0",
         port=port,

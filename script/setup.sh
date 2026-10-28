@@ -15,7 +15,7 @@ log_warn()    { printf '[WARN] %s\n' "$*" >&2; }
 log_error()   { printf '[ERROR] %s\n' "$*" >&2; }
 
 if [[ "$EUID" -ne 0 ]]; then
-    exec sudo --preserve-env=SERVICE1_FLAG,SERVICE1_RAIHAN_PASSWORD,SERVICE2_FLAG,SERVICE2_ADMIN_PASSWORD,SERVICE2_RESEED,SERVICE3_FLAG,SERVICE4_SSRF_FLAG,SERVICE5_FLAG \
+    exec sudo --preserve-env=SERVICE1_FLAG,SERVICE1_RAIHAN_PASSWORD,SERVICE2_FLAG,SERVICE2_ADMIN_PASSWORD,SERVICE2_RESEED,SERVICE3_FLAG,SERVICE4_SSRF_FLAG,SERVICE5_FLAG,SERVICE8_FLAG,SERVICE8_JWT_SECRET,SERVICE9_FLAG,SERVICE9_RESEED,MONGODB_SERIES \
         bash "$SCRIPT_PATH" "$@"
 fi
 
@@ -52,7 +52,7 @@ if ! getent group "$EDITORS_GROUP" >/dev/null; then
 fi
 usermod -aG "$EDITORS_GROUP" player
 
-for number in 1 2 3 4 5; do
+for number in 1 2 3 4 5 8 9; do
     account="user$number"
     if ! getent passwd "$account" >/dev/null; then
         useradd --system --user-group --no-create-home --home-dir /nonexistent \
@@ -75,18 +75,27 @@ if [[ -f "$SUDOERS_FILE" ]]; then
     log_warn "Backed up existing player restart rules to $SUDOERS_BACKUP"
 fi
 cat > "$SUDOERS_FILE" <<'SUDOERS'
-player ALL=(root) NOPASSWD: /usr/bin/systemctl restart hackshield-service1.service, /usr/bin/systemctl restart hackshield-service2.service, /usr/bin/systemctl restart hackshield-service3.service, /usr/bin/systemctl restart hackshield-service4.service, /usr/bin/systemctl restart hackshield-service5.service
+player ALL=(root) NOPASSWD: /usr/bin/systemctl restart hackshield-service1.service, /usr/bin/systemctl restart hackshield-service2.service, /usr/bin/systemctl restart hackshield-service3.service, /usr/bin/systemctl restart hackshield-service4.service, /usr/bin/systemctl restart hackshield-service5.service, /usr/bin/systemctl restart hackshield-service8.service, /usr/bin/systemctl restart hackshield-service9.service
 SUDOERS
 chown root:root "$SUDOERS_FILE"
 chmod 0440 "$SUDOERS_FILE"
 visudo -cf "$SUDOERS_FILE"
 
-mapfile -t SERVICE_SCRIPTS < <(find "$SERVICE_DIR" -maxdepth 1 -type f \
-    -name '[0-9][0-9]_service.sh' -print | sort)
-if [[ "${#SERVICE_SCRIPTS[@]}" -ne 5 ]]; then
-    log_error "Expected five numbered service deployment scripts in $SERVICE_DIR; found ${#SERVICE_SCRIPTS[@]}."
-    exit 1
-fi
+SERVICE_SCRIPTS=(
+    "$SERVICE_DIR/01_service.sh"
+    "$SERVICE_DIR/02_service.sh"
+    "$SERVICE_DIR/03_service.sh"
+    "$SERVICE_DIR/04_service.sh"
+    "$SERVICE_DIR/05_service.sh"
+    "$SERVICE_DIR/08_service.sh"
+    "$SERVICE_DIR/09_service.sh"
+)
+for service_script in "${SERVICE_SCRIPTS[@]}"; do
+    [[ -f "$service_script" ]] || {
+        log_error "Required deployment script is missing: $service_script"
+        exit 1
+    }
+done
 
 log_info "Deploying services from $REPO_DIR..."
 for service_script in "${SERVICE_SCRIPTS[@]}"; do
@@ -97,5 +106,5 @@ done
 
 log_success "Hack & Shield service provisioning completed."
 log_info "Log out and back in as player for the hs-service-editors group membership to take effect."
-log_info "Configure QEMU hostfwd rules on the host for ports 9001, 3306, 4444, 1337, 7007, and 8005. Do not forward 7108."
-log_info "Services 1-5 are deployed; challenge selection, scoring, monitoring, network isolation, and VM resets are not provisioned by this script."
+log_info "Configure QEMU hostfwd rules on the host for ports 9001, 3306, 4444, 1337, 7007, 8005, 5001, and 5002. Do not forward 7108 or MongoDB port 27017."
+log_info "Services 1-5, 8, and 9 are deployed; Services 6-7, challenge selection, scoring, monitoring, network isolation, and VM resets are not provisioned by this script."
