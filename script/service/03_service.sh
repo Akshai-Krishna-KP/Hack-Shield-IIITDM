@@ -110,25 +110,10 @@ chmod 0400 "$FLAG_FILE"
 # Install the separate, root-owned systemd unit from the repository.
 install -o root -g root -m 0644 "$UNIT_SOURCE" "$UNIT_DEST"
 systemctl daemon-reload
-systemctl enable "$SERVICE_NAME"
-systemctl restart "$SERVICE_NAME"
 
-if ! systemctl is-active --quiet "$SERVICE_NAME"; then
-    journalctl -u "$SERVICE_NAME" -n 80 --no-pager || true
-    log_error "$SERVICE_NAME did not start. Check the unit's WorkingDirectory and ExecStart."
-    exit 1
-fi
-if ! curl --fail --silent --show-error --max-time 5 -G \
-    http://127.0.0.1:1337/ --data-urlencode 'text=hello' >/dev/null; then
-    journalctl -u "$SERVICE_NAME" -n 80 --no-pager || true
-    log_error 'Service 3 route/template check failed on port 1337.'
-    exit 1
-fi
-
-log_success 'Service 3 deployed successfully.'
+log_success 'Service 3 deployed; startup is managed externally.'
 printf '\nURL:       http://127.0.0.1:1337/\n'
 printf 'App path:  %s\n' "$DEST_DIR"
 printf 'Python:    %s/bin/python\n' "$VENV_DIR"
 printf 'Unit:      %s\n' "$UNIT_DEST"
 printf 'Flag path: %s (flag value not displayed)\n\n' "$FLAG_FILE"
-systemctl --no-pager --full status "$SERVICE_NAME"

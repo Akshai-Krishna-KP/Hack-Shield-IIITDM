@@ -1,7 +1,8 @@
-from pathlib import Path
 import base64
 import binascii
+import os
 from functools import wraps
+from pathlib import Path
 
 from flask import (
     Flask, render_template, request,
@@ -189,4 +190,4 @@ def logout():
 if __name__ == "__main__":
     # Accessible to other machines on the challenge network.
     # Restrict the port to your isolated CTF network/firewall.
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5007")), debug=False)

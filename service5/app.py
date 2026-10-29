@@ -9,7 +9,7 @@ from flask import Flask, abort, flash, redirect, render_template, request, send_
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path("/var/lib/hackshield/service5/hackmart.db")
-FLAG_PATH = Path("/opt/flag/flag5")
+FLAG_PATH = Path("/opt/flags/flag5")
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("HACKMART_SECRET", "local-ctf-secret-change-me")

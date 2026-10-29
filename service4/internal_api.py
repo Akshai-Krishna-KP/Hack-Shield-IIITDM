@@ -1,7 +1,7 @@
 from pathlib import Path
 from flask import Flask, jsonify
 app = Flask(__name__)
-FLAG_PATH = Path('/opt/flag/flag4')
+FLAG_PATH = Path('/opt/flags/flag4')
 ASSETS = [
     {'id': 101, 'name': 'Rack Switch - Core-A', 'location': 'DC1-R04', 'owner': 'IT Operations'},
     {'id': 102, 'name': 'Fleet Laptop - ENG-22', 'location': 'Engineering', 'owner': 'Workplace IT'},

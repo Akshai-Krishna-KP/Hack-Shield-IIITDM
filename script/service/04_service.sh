@@ -20,9 +20,10 @@ SERVICE4_DEST="/opt/hackshield/services/service4"
 LEGACY_SERVICE5_DEST="/opt/hackshield/services/service5"
 LEGACY_SERVICE5_NAME="hackshield-service5.service"
 LEGACY_SERVICE5_UNIT_DEST="/etc/systemd/system/$LEGACY_SERVICE5_NAME"
-LEGACY_FLAG_FILE="/opt/flags/flag_ssrf_service5"
-FLAG_DIR="/opt/flag"
+RETIRED_SERVICE5_FLAG_FILE="/opt/flags/flag_ssrf_service5"
+FLAG_DIR="/opt/flags"
 FLAG_FILE="$FLAG_DIR/flag4"
+LEGACY_FLAG_FILE="/opt/flag/flag4"
 
 SERVICE4_NAME="hackshield-service4.service"
 SERVICE4_UNIT_DEST="/etc/systemd/system/$SERVICE4_NAME"
@@ -119,7 +120,7 @@ if [[ -d "$LEGACY_SERVICE5_DEST" ]]; then
     rm -rf -- "$LEGACY_SERVICE5_DEST"
 fi
 rm -f -- "$LEGACY_SERVICE5_UNIT_DEST"
-rm -f -- "$LEGACY_FLAG_FILE"
+rm -f -- "$RETIRED_SERVICE5_FLAG_FILE"
 
 # -----------------------------
 # STEP 7: Create protected flag
@@ -129,6 +130,13 @@ install -d -o root -g root -m 0711 "$FLAG_DIR"
 # The service account can traverse the flag directory but cannot list it.
 setfacl -m u:user4:--x "$FLAG_DIR"
 
+if [[ ! -f "$FLAG_FILE" && -f "$LEGACY_FLAG_FILE" ]]; then
+    mv -- "$LEGACY_FLAG_FILE" "$FLAG_FILE"
+    log_info "Migrated the existing Service 4 flag to $FLAG_FILE."
+elif [[ -f "$FLAG_FILE" && -f "$LEGACY_FLAG_FILE" ]]; then
+    rm -f -- "$LEGACY_FLAG_FILE"
+    log_warn "Removed the obsolete Service 4 flag from $LEGACY_FLAG_FILE; preserving $FLAG_FILE."
+fi
 if [[ ! -f "$FLAG_FILE" ]]; then
     FLAG_VALUE="${SERVICE4_SSRF_FLAG:-HS{service4_$(python3 -c 'import secrets; print(secrets.token_hex(16))')}}"
     printf '%s\n' "$FLAG_VALUE" > "$FLAG_FILE"
@@ -148,39 +156,8 @@ if ! grep -Fq "$SERVICE4_DEST/.venv/bin/python" "$SERVICE4_UNIT_DEST"; then
     log_warn "Service 4 unit does not reference $SERVICE4_DEST/.venv/bin/python; review its ExecStart."
 fi
 systemctl daemon-reload
-systemctl enable "$SERVICE4_NAME"
-systemctl restart "$SERVICE4_NAME"
 
-# -----------------------------
-# STEP 9: Verify services + SSRF
-# -----------------------------
-log_info "Waiting briefly for services to start..."
-sleep 2
-
-if ! systemctl is-active --quiet "$SERVICE4_NAME"; then
-    journalctl -u "$SERVICE4_NAME" -n 60 --no-pager || true
-    log_error "Service 4 failed to start."
-    exit 1
-fi
-
-if ! curl --fail --silent --show-error --max-time 3 \
-    http://127.0.0.1:7108/internal/health; then
-    log_error "Internal API health check failed at 127.0.0.1:7108."
-    journalctl -u "$SERVICE4_NAME" -n 40 --no-pager || true
-    exit 1
-fi
-echo
-
-if ! curl --fail --silent --show-error --max-time 5 -G \
-    http://127.0.0.1:7007/api/preview \
-    --data-urlencode 'url=http://127.0.0.1:7108/internal/health'; then
-    log_error "SSRF smoke test failed. Check Service 4's /api/preview route and unit log."
-    journalctl -u "$SERVICE4_NAME" -n 40 --no-pager || true
-    exit 1
-fi
-echo
-
-log_success "Both Service 4 processes are active; SSRF health smoke test passed."
+log_success "Service 4 deployed; startup is managed externally."
 echo
 echo "Public portal:       http://127.0.0.1:7007/"
 echo "Preview endpoint:    http://127.0.0.1:7007/api/preview"
@@ -190,4 +167,3 @@ echo "Service 4 unit:      $SERVICE4_NAME"
 echo
 echo "IMPORTANT: Do not add port 7108 to QEMU hostfwd rules."
 echo "Both processes run under the single Service 4 systemd unit."
-systemctl --no-pager --full status "$SERVICE4_NAME"

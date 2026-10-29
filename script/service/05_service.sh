@@ -23,9 +23,9 @@ UNIT_DEST="/etc/systemd/system/$SERVICE_NAME"
 VENV_DIR="$DEST_DIR/.venv"
 STATE_DIR="/var/lib/hackshield/service5"
 DB_FILE="$STATE_DIR/hackmart.db"
-FLAG_DIR="/opt/flag"
+FLAG_DIR="/opt/flags"
 FLAG_FILE="$FLAG_DIR/flag5"
-LEGACY_FLAG_FILE="/opt/flags/flag5"
+LEGACY_FLAG_FILE="/opt/flag/flag5"
 
 log_info()    { printf '[INFO] %s\n' "$*"; }
 log_success() { printf '[SUCCESS] %s\n' "$*"; }
@@ -137,6 +137,9 @@ setfacl -m u:user5:--x "$FLAG_DIR"
 if [[ ! -f "$FLAG_FILE" && -f "$LEGACY_FLAG_FILE" ]]; then
     mv -- "$LEGACY_FLAG_FILE" "$FLAG_FILE"
     log_info "Migrated the existing Service 5 flag to $FLAG_FILE."
+elif [[ -f "$FLAG_FILE" && -f "$LEGACY_FLAG_FILE" ]]; then
+    rm -f -- "$LEGACY_FLAG_FILE"
+    log_warn "Removed the obsolete Service 5 flag from $LEGACY_FLAG_FILE; preserving $FLAG_FILE."
 fi
 if [[ ! -f "$FLAG_FILE" ]] || [[ "$(<"$FLAG_FILE")" == 'flag{hackmart_coupon_race_condition}' ]]; then
     FLAG_VALUE="${SERVICE5_FLAG:-HS{service5_$(python3 -c 'import secrets; print(secrets.token_hex(16))')}}"
@@ -147,39 +150,9 @@ fi
 chown user5:user5 "$FLAG_FILE"
 chmod 0400 "$FLAG_FILE"
 
-# Install root-owned unit from the repository and restart.
+# Install the root-owned unit; startup is managed externally.
 install -o root -g root -m 0644 "$UNIT_SOURCE" "$UNIT_DEST"
 systemctl daemon-reload
-systemctl enable "$SERVICE_NAME"
-systemctl restart "$SERVICE_NAME"
-
-if ! systemctl is-active --quiet "$SERVICE_NAME"; then
-    journalctl -u "$SERVICE_NAME" -n 100 --no-pager || true
-    log_error "$SERVICE_NAME did not start. Check the unit and application logs."
-    exit 1
-fi
-
-log_info 'Waiting for the Service 5 HTTP health endpoint...'
-/usr/bin/python3 - <<'PYHEALTH'
-import time
-import urllib.error
-import urllib.request
-
-url = 'http://127.0.0.1:8005/health'
-last_error = None
-for _ in range(30):
-    try:
-        with urllib.request.urlopen(url, timeout=2) as response:
-            if response.status == 200 and b'"status":"ok"' in response.read():
-                print('[INFO] Service 5 health check passed.')
-                break
-            last_error = f'unexpected response status {response.status}'
-    except (OSError, urllib.error.URLError) as error:
-        last_error = str(error)
-    time.sleep(1)
-else:
-    raise SystemExit(f'Service 5 health check failed: {last_error}')
-PYHEALTH
 
 /usr/bin/python3 - "$DB_FILE" <<'PYVERIFY'
 import sqlite3, sys
@@ -193,7 +166,7 @@ finally:
     con.close()
 PYVERIFY
 
-log_success 'Service 5 deployed successfully.'
+log_success 'Service 5 deployed; startup is managed externally.'
 printf '\nURL:       http://127.0.0.1:8005/\n'
 printf 'App path:  %s\n' "$DEST_DIR"
 printf 'Python:    %s/bin/python\n' "$VENV_DIR"
@@ -201,4 +174,3 @@ printf 'Database:  %s\n' "$DB_FILE"
 printf 'SQL seed:  %s\n' "$SQL_SOURCE"
 printf 'Unit:      %s\n' "$UNIT_DEST"
 printf 'Flag path: %s (flag value not displayed)\n\n' "$FLAG_FILE"
-systemctl --no-pager --full status "$SERVICE_NAME"

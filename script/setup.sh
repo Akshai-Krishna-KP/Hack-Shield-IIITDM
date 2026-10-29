@@ -15,7 +15,7 @@ log_warn()    { printf '[WARN] %s\n' "$*" >&2; }
 log_error()   { printf '[ERROR] %s\n' "$*" >&2; }
 
 if [[ "$EUID" -ne 0 ]]; then
-    exec sudo --preserve-env=SERVICE1_FLAG,SERVICE1_RAIHAN_PASSWORD,SERVICE2_FLAG,SERVICE2_ADMIN_PASSWORD,SERVICE2_RESEED,SERVICE3_FLAG,SERVICE4_SSRF_FLAG,SERVICE5_FLAG \
+    exec sudo --preserve-env=SERVICE1_FLAG,SERVICE1_RAIHAN_PASSWORD,SERVICE2_FLAG,SERVICE2_ADMIN_PASSWORD,SERVICE2_RESEED,SERVICE3_FLAG,SERVICE4_SSRF_FLAG,SERVICE5_FLAG,SERVICE6_FLAG,SERVICE6_ADMIN_API_KEY,SERVICE7_FLAG,SERVICE8_FLAG,SERVICE8_JWT_SECRET,SERVICE9_FLAG,SERVICE9_RESEED,MONGODB_SERIES \
         bash "$SCRIPT_PATH" "$@"
 fi
 
@@ -52,7 +52,7 @@ if ! getent group "$EDITORS_GROUP" >/dev/null; then
 fi
 usermod -aG "$EDITORS_GROUP" player
 
-for number in 1 2 3 4 5; do
+for number in 1 2 3 4 5 6 7 8 9; do
     account="user$number"
     if ! getent passwd "$account" >/dev/null; then
         useradd --system --user-group --no-create-home --home-dir /nonexistent \
@@ -66,7 +66,7 @@ install -d -o root -g root -m 0755 \
     /var/lib/hackshield
 install -d -o root -g root -m 0700 /opt/hackshield/backups
 install -d -o root -g root -m 0750 /var/log/hackshield
-install -d -o root -g root -m 0711 /opt/flags /opt/flag
+install -d -o root -g root -m 0711 /opt/flags
 
 SUDOERS_FILE="/etc/sudoers.d/hackshield-player-restart"
 if [[ -f "$SUDOERS_FILE" ]]; then
@@ -75,7 +75,7 @@ if [[ -f "$SUDOERS_FILE" ]]; then
     log_warn "Backed up existing player restart rules to $SUDOERS_BACKUP"
 fi
 cat > "$SUDOERS_FILE" <<'SUDOERS'
-player ALL=(root) NOPASSWD: /usr/bin/systemctl restart hackshield-service1.service, /usr/bin/systemctl restart hackshield-service2.service, /usr/bin/systemctl restart hackshield-service3.service, /usr/bin/systemctl restart hackshield-service4.service, /usr/bin/systemctl restart hackshield-service5.service
+player ALL=(root) NOPASSWD: /usr/bin/systemctl restart hackshield-service1.service, /usr/bin/systemctl restart hackshield-service2.service, /usr/bin/systemctl restart hackshield-service3.service, /usr/bin/systemctl restart hackshield-service4.service, /usr/bin/systemctl restart hackshield-service5.service, /usr/bin/systemctl restart hackshield-service6.service, /usr/bin/systemctl restart hackshield-service7.service, /usr/bin/systemctl restart hackshield-service8.service, /usr/bin/systemctl restart hackshield-service9.service
 SUDOERS
 chown root:root "$SUDOERS_FILE"
 chmod 0440 "$SUDOERS_FILE"
@@ -83,8 +83,8 @@ visudo -cf "$SUDOERS_FILE"
 
 mapfile -t SERVICE_SCRIPTS < <(find "$SERVICE_DIR" -maxdepth 1 -type f \
     -name '[0-9][0-9]_service.sh' -print | sort)
-if [[ "${#SERVICE_SCRIPTS[@]}" -ne 5 ]]; then
-    log_error "Expected five numbered service deployment scripts in $SERVICE_DIR; found ${#SERVICE_SCRIPTS[@]}."
+if [[ "${#SERVICE_SCRIPTS[@]}" -ne 9 ]]; then
+    log_error "Expected nine numbered service deployment scripts in $SERVICE_DIR; found ${#SERVICE_SCRIPTS[@]}."
     exit 1
 fi
 
@@ -97,5 +97,5 @@ done
 
 log_success "Hack & Shield service provisioning completed."
 log_info "Log out and back in as player for the hs-service-editors group membership to take effect."
-log_info "Configure QEMU hostfwd rules on the host for ports 9001, 3306, 4444, 1337, 7007, and 8005. Do not forward 7108."
-log_info "Services 1-5 are deployed; challenge selection, scoring, monitoring, network isolation, and VM resets are not provisioned by this script."
+log_info "Configure QEMU hostfwd rules on the host for ports 9001, 3306, 4444, 1337, 7007, 8005, 8006, 5007, 5001, and 5002. Do not forward 7108, 6006, or MongoDB port 27017."
+log_info "Services 1-9 are deployed; challenge selection, scoring, monitoring, network isolation, and VM resets are not provisioned by this script."

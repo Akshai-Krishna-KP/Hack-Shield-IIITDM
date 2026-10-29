@@ -1,6 +1,6 @@
 # Hack & Shield IIITDM Lab
 
-This repository currently provisions five intentionally vulnerable services on an Ubuntu Server 24.04 VM. It does not build the VM image; install Ubuntu first, clone this repository inside the guest, and run the installer below from a sudo-capable administrator account.
+This repository provisions Services 1–9 on an Ubuntu Server 24.04 VM. It does not build the VM image; install Ubuntu, clone this repository in the guest, and run the installer from a sudo-capable administrator account.
 
 ## Provision the guest
 
@@ -10,22 +10,16 @@ cd Hack-Shield-IIITDM
 sudo bash script/setup.sh
 ```
 
-The script installs system dependencies, creates `player`, `user1`–`user5`, and the `hs-service-editors` group, then deploys the numbered services and systemd units. It prompts to set a password when creating `player` in an interactive terminal. If run non-interactively, set one later with `sudo passwd player`. Log out and back in as `player` after setup so the new group membership takes effect.
+The script installs system dependencies, creates `player`, `user1`–`user9`, and the `hs-service-editors` group, then runs all nine deployment scripts and installs their systemd units. Services 6 and 7 run Flask directly on ports `8006` and `5007`; Service 8 uses port `5001` and Service 9 uses port `5002`. The service units are managed by the environment's external service controller. Setup prompts for a `player` password when interactive; otherwise set one later with `sudo passwd player`. Log out and back in as `player` after setup so the group membership takes effect.
 
-The install needs access to Ubuntu package repositories and Python package indexes. Fresh installs generate per-VM flags; to supply organizer-selected values, pass the relevant `SERVICE1_FLAG`, `SERVICE1_RAIHAN_PASSWORD`, `SERVICE2_FLAG`, `SERVICE2_ADMIN_PASSWORD`, `SERVICE3_FLAG`, `SERVICE4_SSRF_FLAG`, or `SERVICE5_FLAG` variables through `sudo --preserve-env=...`. Existing flags and Service 2 and Service 5 databases are preserved on reruns unless `SERVICE2_RESEED=1` is set.
-
-For example, after exporting chosen values, run `sudo --preserve-env=SERVICE2_ADMIN_PASSWORD,SERVICE4_SSRF_FLAG,SERVICE5_FLAG bash script/setup.sh`.
+The install needs Ubuntu and Python package indexes, plus MongoDB's package repository for Service 9. Fresh installs generate per-VM flags; organizer overrides can be passed through the corresponding `SERVICE1_FLAG` through `SERVICE9_FLAG` variables and service-specific settings such as `SERVICE8_JWT_SECRET`, `SERVICE9_RESEED`, and `MONGODB_SERIES`. Service 2, 5, and 9 preserve persistent data on reruns unless their reseed option is enabled.
 
 ## QEMU networking
 
-Guest setup cannot change QEMU's host-side port forwarding. Start QEMU with host forwards for the services you intend to expose: guest ports `9001` (Service 1), `3306` (the intentionally exposed MySQL challenge), `4444` (Service 2), `1337` (Service 3), `7007` (Service 4), and `8005` (Service 5). Change the host-side ports if they conflict with host services and update the team port map. Do **not** forward `7108`; it is Service 4's loopback-only SSRF target. Restrict forwarded ports to the isolated competition network.
+Guest setup cannot change host-side forwarding. Forward guest ports `9001` (Service 1), `3306` (MySQL challenge), `4444` (Service 2), `1337` (Service 3), `7007` (Service 4), `8005` (Service 5), `8006` (Service 6), `5007` (Service 7), `5001` (Service 8), and `5002` (Service 9) only as required. Do **not** forward `7108` (Service 4's loopback SSRF target), `6006` (Service 6's internal target), or MongoDB port `27017`. Restrict access to the isolated competition network.
 
-## Current scope and status
+## Flags and deployment scope
 
-Service 4's public preview app and internal inventory API are supervised by one unit, `hackshield-service4.service`. Service 5 is HackMart, a coupon TOCTOU/race-condition challenge on port `8005`, supervised by `hackshield-service5.service`; its flag is `/opt/flag/flag5`. Service 4 uses `/opt/flag/flag4`; Services 1–3 use `/opt/flags/flag1` through `flag3`. `player` can restart only the five named units through a narrow sudoers rule.
+All service flags use `/opt/flags/flagN`. Service 4's public preview app and internal inventory API share `hackshield-service4.service`; Service 5 is the HackMart race-condition challenge; Services 6–9 provide their documented LFI, weak-cookie, JWT, and NoSQL-injection challenges. `player` can restart only the nine named units through the narrow sudoers rule.
 
-This repository does not yet implement the 20-service selection described in the planning documents, nor the game server, scoring, monitoring, per-round reset, or host firewall/network policy. Root-level Markdown notes are excluded by `.gitignore` and include older service numbering and manual deployment examples; use the scripts and files in this checkout as the current implementation reference.
-
-The current flag model also has a known limit: participants can edit service code and restart it, and the service account can read that service's own flag. A modified service can therefore expose its own flag. If the rules require preventing that, add an out-of-process flag broker/validator before the competition; filesystem permissions alone cannot close this gap.
-
-These challenge services are deliberately vulnerable. Deploy them only in the isolated lab and review the QEMU host firewall before exposing any forwarded port.
+This repository does not implement the 20-service selection, game server, scoring, monitoring, per-round reset, or host firewall/network policy. Root-level Markdown notes are excluded by `.gitignore`; use the scripts and files in this checkout as the deployment reference. These services are deliberately vulnerable and belong only in an isolated lab. The current flag model allows participants who can modify and restart a service to expose that service's own flag; a separate flag broker is needed to prevent that.

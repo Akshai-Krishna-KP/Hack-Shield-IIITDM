@@ -192,24 +192,7 @@ log_success "Website deployed to $DEST_DIR"
 install -o root -g root -m 0644 "$UNIT_SOURCE" "$UNIT_DEST"
 
 systemctl daemon-reload
-systemctl enable "$SERVICE_NAME"
-systemctl restart "$SERVICE_NAME"
 
-# --------------------------------------------------
-# STEP 9: Verify deployment
-# --------------------------------------------------
-
-if ! systemctl is-active --quiet "$SERVICE_NAME"; then
-    journalctl -u "$SERVICE_NAME" -n 60 --no-pager || true
-    log_error "Service failed to start."
-    exit 1
-fi
-
-if ! curl --fail --silent --show-error --max-time 3 http://127.0.0.1:9001/ >/dev/null; then
-    journalctl -u "$SERVICE_NAME" -n 60 --no-pager || true
-    log_error "Service 1 portal did not answer on port 9001."
-    exit 1
-fi
 if ! mysql --connect-timeout=3 --protocol=TCP -h 127.0.0.1 -u svc_reader --skip-password \
     employees -e 'SELECT COUNT(*) FROM staff' >/dev/null; then
     log_error "Service 1 MySQL seed/account check failed."
@@ -223,6 +206,4 @@ echo "Portal:       http://127.0.0.1:9001/"
 echo "MySQL:        port 3306"
 echo "Database:     employees"
 echo "Table:        staff"
-echo "Systemd unit: $SERVICE_NAME"
-
-systemctl --no-pager --full status "$SERVICE_NAME"
+echo "Systemd unit installed: $SERVICE_NAME (start managed externally)"

@@ -1,6 +1,6 @@
-
-from pathlib import Path
+import os
 import secrets
+from pathlib import Path
 
 from flask import Flask, jsonify, request, render_template, send_file
 
@@ -12,6 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent
 CHALLENGE_ROOT = (BASE_DIR / "challenge_fs").resolve()
 PUBLIC_DIR = (CHALLENGE_ROOT / "public").resolve()
 CONFIG_FILE = CHALLENGE_ROOT / ".env"
+FLAG_PATH = Path("/opt/flags/flag6")
 
 app = Flask(__name__)
 
@@ -38,7 +39,7 @@ def load_config():
 
 CONFIG = load_config()
 ADMIN_API_KEY = CONFIG.get("ADMIN_API_KEY", "")
-FLAG = "HNS{lfi_to_admin_key_demo}"
+FLAG = FLAG_PATH.read_text(encoding="utf-8").strip()
 
 
 # --------------------------------------------------
@@ -213,7 +214,7 @@ def not_found(_error):
 
 if __name__ == "__main__":
     app.run(
-        host="127.0.0.1",
-        port=5000,
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", "8006")),
         debug=False
     )

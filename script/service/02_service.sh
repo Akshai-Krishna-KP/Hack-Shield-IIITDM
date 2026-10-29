@@ -152,26 +152,11 @@ cp -- "$SOURCE_UNIT" "$UNIT_DEST"
 chown root:root "$UNIT_DEST"
 chmod 0644 "$UNIT_DEST"
 
-# 8. Start and verify service
+# 8. Register the updated unit; startup is managed externally.
 systemctl daemon-reload
-systemctl enable "$SERVICE_NAME"
-systemctl restart "$SERVICE_NAME"
-sleep 2
 
-if ! systemctl is-active --quiet "$SERVICE_NAME"; then
-    journalctl -u "$SERVICE_NAME" -n 80 --no-pager || true
-    log_error "Service 2 failed to start; inspect the journal above."
-    exit 1
-fi
-if ! curl --fail --silent --show-error --max-time 5 http://127.0.0.1:4444/products >/dev/null; then
-    journalctl -u "$SERVICE_NAME" -n 80 --no-pager || true
-    log_error "Service 2 storefront/database check failed on port 4444."
-    exit 1
-fi
-
-log_success "Service 2 deployed and active."
+log_success "Service 2 deployed; startup is managed externally."
 printf '\nStorefront:   http://127.0.0.1:%s/\nProducts:     http://127.0.0.1:%s/products\nSearch:       http://127.0.0.1:%s/search?q=runner\nAdmin login:  http://127.0.0.1:%s/admin/login\nDatabase:     %s\nSeed SQL:     %s\nFlag file:    %s\nSystemd unit: %s\nUnit source:  %s\n\n' "$PORT" "$PORT" "$PORT" "$PORT" "$DB_FILE" "$SEED_SQL" "$FLAG_FILE" "$SERVICE_NAME" "$SOURCE_UNIT"
 echo "Default seeded admin username: admin"
 echo "Admin password is generated per VM and is not printed; obtain it from the organizer if required."
 echo "The flag is generated per VM. Keep this intentionally vulnerable service on the isolated competition network."
-systemctl --no-pager --full status "$SERVICE_NAME"
