@@ -10,7 +10,7 @@ cd Hack-Shield-IIITDM
 sudo bash script/setup.sh
 ```
 
-The script installs system dependencies, creates `player`, `user1`–`user9`, and the `hs-service-editors` group, then runs all nine deployment scripts and installs their systemd units. Services 6 and 7 run Flask directly on ports `8006` and `5007`; Service 8 uses port `5001` and Service 9 uses port `5002`. The service units are managed by the environment's external service controller. Setup prompts for a `player` password when interactive; otherwise set one later with `sudo passwd player`. Log out and back in as `player` after setup so the group membership takes effect.
+The script installs system dependencies, creates `player`, `user1`–`user9`, and the `hs-service-editors` group, then runs all nine deployment scripts and installs their systemd units. Services 6 and 7 run Flask directly on ports `8006` and `5007`; Service 8 uses port `5001` and Service 9 uses port `5002`. The environment's external service controller manages the service units. Setup prompts for a `player` password when interactive; otherwise set one later with `sudo passwd player`. Log out and back in as `player` after setup so group membership takes effect.
 
 The install needs Ubuntu and Python package indexes, plus MongoDB's package repository for Service 9. Fresh installs generate per-VM flags; organizer overrides can be passed through the corresponding `SERVICE1_FLAG` through `SERVICE9_FLAG` variables and service-specific settings such as `SERVICE8_JWT_SECRET`, `SERVICE9_RESEED`, and `MONGODB_SERIES`. Service 2, 5, and 9 preserve persistent data on reruns unless their reseed option is enabled.
 
