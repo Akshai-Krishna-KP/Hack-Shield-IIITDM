@@ -13,7 +13,6 @@ app = Flask(__name__)
 
 COMPANY = "ByteForge Technologies"
 FLAG_FILE = Path("/opt/flags/flag7")
-FLAG = FLAG_FILE.read_text(encoding="utf-8").strip()
 
 # Intentionally simple credentials for this isolated CTF.
 USERNAME = "employee"
@@ -128,7 +127,7 @@ def dashboard():
             "dashboard.html",
             company=COMPANY,
             role="Administrator",
-            flag=FLAG
+            flag=FLAG_FILE.read_text(encoding="utf-8").strip()
         )
 
     return render_template(

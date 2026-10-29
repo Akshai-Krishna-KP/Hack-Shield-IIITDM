@@ -16,7 +16,7 @@ FLAG_PATH = "/opt/flags/flag1"
 
 def db_connect():
     return pymysql.connect(
-        host="127.0.0.1", user="svc_reader", password="",
+        host="127.0.0.1", user="northstar", password="",
         database="employees", connect_timeout=3,
         cursorclass=pymysql.cursors.DictCursor
     )

@@ -243,8 +243,8 @@ INSERT INTO audit_logs(audit_id,event_time,actor_username,event_type,resource_ty
 (3,'2026-10-27 08:02:05','jthomas','ticket_update','support_ticket','INC-2026-0142','10.20.12.31','success','info',JSON_OBJECT('field','status','from','open','to','in_progress')),
 (4,'2026-10-27 08:15:44','arao','report_export','sales_report','Q3-2026','10.20.18.12','success','low',JSON_OBJECT('format','csv','rows',184)),
 (5,'2026-10-27 08:59:20','sdas','access_review_opened','access_review','AR-2026-Q4-017','10.20.5.44','success','medium',JSON_OBJECT('system','Employee Portal','review_cycle','Q4-2026')),
-(6,'2026-10-27 09:06:02','system','database_connection','mysql','employees','127.0.0.1','success','info',JSON_OBJECT('client','northstar-portal','account','svc_reader')),
-(7,'2026-10-27 09:10:48','unknown','database_authentication','mysql','svc_reader','10.20.9.81','success','critical',JSON_OBJECT('note','Synthetic lab event; investigate unexpected remote access'))
+(6,'2026-10-27 09:06:02','system','database_connection','mysql','employees','127.0.0.1','success','info',JSON_OBJECT('client','northstar-portal','account','northstar')),
+(7,'2026-10-27 09:10:48','unknown','database_authentication','mysql','northstar','10.20.9.81','success','critical',JSON_OBJECT('note','Synthetic lab event; investigate unexpected remote access'))
 ON DUPLICATE KEY UPDATE event_time=VALUES(event_time),outcome=VALUES(outcome),severity=VALUES(severity),details=VALUES(details);
 
 INSERT INTO access_reviews(review_id,review_ref,username,system_name,access_level,reviewer_username,review_status,reviewed_at,notes) VALUES
@@ -271,11 +271,11 @@ ON DUPLICATE KEY UPDATE change_summary=VALUES(change_summary),status=VALUES(stat
 
 -- The blank password and wildcard host are intentional CTF misconfigurations.
 -- Broad SELECT grants make the other synthetic tables discoverable in the lab.
-CREATE USER IF NOT EXISTS 'svc_reader'@'%' IDENTIFIED BY '';
-ALTER USER 'svc_reader'@'%' IDENTIFIED BY ''
+CREATE USER IF NOT EXISTS 'northstar'@'%' IDENTIFIED BY '';
+ALTER USER 'northstar'@'%' IDENTIFIED BY ''
   WITH MAX_QUERIES_PER_HOUR 300
        MAX_UPDATES_PER_HOUR 0
        MAX_CONNECTIONS_PER_HOUR 100
        MAX_USER_CONNECTIONS 5;
-GRANT SELECT ON employees.* TO 'svc_reader'@'%';
+GRANT SELECT ON employees.* TO 'northstar'@'%';
 FLUSH PRIVILEGES;

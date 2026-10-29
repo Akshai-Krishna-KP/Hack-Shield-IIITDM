@@ -39,7 +39,6 @@ def load_config():
 
 CONFIG = load_config()
 ADMIN_API_KEY = CONFIG.get("ADMIN_API_KEY", "")
-FLAG = FLAG_PATH.read_text(encoding="utf-8").strip()
 
 
 # --------------------------------------------------
@@ -159,7 +158,7 @@ def admin_portal():
             and secrets.compare_digest(api_key, ADMIN_API_KEY)
         ):
             message = "Authentication successful."
-            flag = FLAG
+            flag = FLAG_PATH.read_text(encoding="utf-8").strip()
         else:
             message = "Invalid API key. Access denied."
 

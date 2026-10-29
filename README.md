@@ -20,6 +20,6 @@ Guest setup cannot change host-side forwarding. Forward guest ports `9001` (Serv
 
 ## Flags and deployment scope
 
-All service flags use `/opt/flags/flagN`. Service 4's public preview app and internal inventory API share `hackshield-service4.service`; Service 5 is the HackMart race-condition challenge; Services 6–9 provide their documented LFI, weak-cookie, JWT, and NoSQL-injection challenges. `player` can restart only the nine named units through the narrow sudoers rule.
+All service flags use `/opt/flags/flagN`. Service 9's `hackshield-service9-flag-sync.path` watches `flag9` and updates its classified MongoDB record when the file is changed. Service 4's public preview app and internal inventory API share `hackshield-service4.service`; Service 5 is the HackMart race-condition challenge; Services 6–9 provide their documented LFI, weak-cookie, JWT, and NoSQL-injection challenges. `player` can restart only the nine named units through the narrow sudoers rule.
 
 This repository does not implement the 20-service selection, game server, scoring, monitoring, per-round reset, or host firewall/network policy. Root-level Markdown notes are excluded by `.gitignore`; use the scripts and files in this checkout as the deployment reference. These services are deliberately vulnerable and belong only in an isolated lab. The current flag model allows participants who can modify and restart a service to expose that service's own flag; a separate flag broker is needed to prevent that.

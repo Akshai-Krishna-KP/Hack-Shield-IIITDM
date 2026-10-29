@@ -193,7 +193,7 @@ install -o root -g root -m 0644 "$UNIT_SOURCE" "$UNIT_DEST"
 
 systemctl daemon-reload
 
-if ! mysql --connect-timeout=3 --protocol=TCP -h 127.0.0.1 -u svc_reader --skip-password \
+if ! mysql --connect-timeout=3 --protocol=TCP -h 127.0.0.1 -u northstar --skip-password \
     employees -e 'SELECT COUNT(*) FROM staff' >/dev/null; then
     log_error "Service 1 MySQL seed/account check failed."
     exit 1

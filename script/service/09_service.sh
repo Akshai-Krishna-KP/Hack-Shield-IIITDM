@@ -20,6 +20,9 @@ REPO_DIR="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 SOURCE_DIR="$REPO_DIR/service9"
 UNIT_SOURCE="$REPO_DIR/systemd/hackshield-service9.service"
 SEED_SOURCE="$REPO_DIR/nodejs/service9_seed.js"
+FLAG_SYNC_SOURCE="$SCRIPT_DIR/09_sync_flag.sh"
+FLAG_SYNC_SERVICE_SOURCE="$REPO_DIR/systemd/hackshield-service9-flag-sync.service"
+FLAG_SYNC_PATH_SOURCE="$REPO_DIR/systemd/hackshield-service9-flag-sync.path"
 
 DEST_DIR="/opt/hackshield/services/service9"
 VENV_DIR="$DEST_DIR/.venv"
@@ -60,6 +63,9 @@ fi
 [[ -f "$SOURCE_DIR/static/styles.css" ]] || { log_error "Missing $SOURCE_DIR/static/styles.css"; exit 1; }
 [[ -f "$SEED_SOURCE" ]] || { log_error "Missing MongoDB seed file: $SEED_SOURCE"; exit 1; }
 [[ -f "$UNIT_SOURCE" ]] || { log_error "Missing systemd unit: $UNIT_SOURCE"; exit 1; }
+[[ -f "$FLAG_SYNC_SOURCE" ]] || { log_error "Missing flag sync script: $FLAG_SYNC_SOURCE"; exit 1; }
+[[ -f "$FLAG_SYNC_SERVICE_SOURCE" ]] || { log_error "Missing flag sync unit: $FLAG_SYNC_SERVICE_SOURCE"; exit 1; }
+[[ -f "$FLAG_SYNC_PATH_SOURCE" ]] || { log_error "Missing flag watcher unit: $FLAG_SYNC_PATH_SOURCE"; exit 1; }
 
 getent passwd "$SERVICE_USER" >/dev/null || {
     log_error "$SERVICE_USER does not exist. Run the VM setup script first."
@@ -285,7 +291,12 @@ fi
 # --------------------------------------------------
 
 install -o root -g root -m 0644 "$UNIT_SOURCE" "$UNIT_DEST"
+install -d -o root -g root -m 0755 /usr/local/libexec
+install -o root -g root -m 0755 "$FLAG_SYNC_SOURCE" /usr/local/libexec/hackshield-service9-flag-sync
+install -o root -g root -m 0644 "$FLAG_SYNC_SERVICE_SOURCE" /etc/systemd/system/hackshield-service9-flag-sync.service
+install -o root -g root -m 0644 "$FLAG_SYNC_PATH_SOURCE" /etc/systemd/system/hackshield-service9-flag-sync.path
 systemctl daemon-reload
+systemctl enable --now hackshield-service9-flag-sync.path
 # --------------------------------------------------
 # STEP 11: Verify seeded challenge data
 # --------------------------------------------------

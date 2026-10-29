@@ -1,12 +1,20 @@
 // Hack & Shield Service 9 / Blockstar Games internal build vault seed.
 // Idempotent: updates catalogue metadata and indexes without overwriting existing dev_tokens.
 
-const dbName = process.env.MONGO_DB_NAME || "blockstar_internal";
+const fs = require('fs');
+
+const dbName = "blockstar_internal";
 const targetDb = db.getSiblingDB(dbName);
-const serviceFlag = process.env.SERVICE9_FLAG;
+
+let serviceFlag;
+try {
+    serviceFlag = fs.readFileSync('/opt/flags/flag9', 'utf8').trim();
+} catch (error) {
+    throw new Error("Failed to read Service 9 flag from /opt/flags/flag9 before seeding.");
+}
 
 if (!serviceFlag) {
-    throw new Error("SERVICE9_FLAG must be set to the protected Service 9 flag before seeding.");
+    throw new Error("The flag file at /opt/flags/flag9 is empty.");
 }
 
 function genDevToken() {
