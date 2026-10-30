@@ -99,7 +99,8 @@ done
 
 log_info "Installing game-server registration and service allocation controller..."
 install -d -o root -g root -m 0755 "$CONTROLLER_DIR"
-for controller_file in load_boot_config.py register_boot.py manage_services.py service_mapping.py; do
+for controller_file in load_boot_config.py register_boot.py manage_services.py service_mapping.py \
+    rotate_flags.py gitea_push.sh; do
     [[ -f "$GAME_SERVER_DIR/$controller_file" ]] || {
         log_error "Required game-server controller file is missing: $GAME_SERVER_DIR/$controller_file"
         exit 1
@@ -107,12 +108,19 @@ for controller_file in load_boot_config.py register_boot.py manage_services.py s
     install -o root -g root -m 0755 "$GAME_SERVER_DIR/$controller_file" "$CONTROLLER_DIR/$controller_file"
 done
 for unit in hackshield-config.service hackshield-register.service \
-    hackshield-service-manager.service hackshield-stop-services.service; do
+    hackshield-service-manager.service hackshield-stop-services.service \
+    hackshield-flags.service; do
     [[ -f "$REPO_DIR/systemd/$unit" ]] || {
         log_error "Required controller unit is missing: $REPO_DIR/systemd/$unit"
         exit 1
     }
     install -o root -g root -m 0644 "$REPO_DIR/systemd/$unit" "/etc/systemd/system/$unit"
+done
+# Commit + push each service's code to the team's Gitea repo whenever it starts
+for number in 1 2 3 4 5 6 7 8 9; do
+    install -d -o root -g root -m 0755 "/etc/systemd/system/hackshield-service$number.service.d"
+    printf '[Service]\n# "-" never fails the service, "+" runs as root (reads /run/hackshield/boot.env)\nExecStartPost=-+/bin/bash %s/gitea_push.sh %s\n' \
+        "$CONTROLLER_DIR" "$number" > "/etc/systemd/system/hackshield-service$number.service.d/gitea.conf"
 done
 systemctl daemon-reload
 
@@ -121,8 +129,8 @@ for number in 1 2 3 4 5 6 7 8 9; do
     systemctl disable --now "hackshield-service$number.service" >/dev/null 2>&1 || true
 done
 systemctl disable --now mysql.service mongod.service >/dev/null 2>&1 || true
-systemctl enable hackshield-config.service hackshield-register.service hackshield-service-manager.service
-systemctl start hackshield-service-manager.service
+systemctl enable hackshield-config.service hackshield-register.service hackshield-service-manager.service hackshield-flags.service
+systemctl start hackshield-flags.service
 
 log_success "Hack & Shield service provisioning completed."
 log_info "Log out and back in as player for the hs-service-editors group membership to take effect."
