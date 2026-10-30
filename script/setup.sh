@@ -37,11 +37,18 @@ apt-get install -y \
 log_info "Creating the participant account and service identities..."
 if ! getent passwd player >/dev/null; then
     useradd --create-home --shell /bin/bash player
-    if [[ -t 0 ]]; then
-        passwd player
-    else
-        log_warn "Created player with a locked password; set one with 'sudo passwd player' before enabling SSH login."
+    if [[ -z "${PLAYER_PASSWORD:-}" ]]; then
+        if [[ -t 0 ]]; then
+            passwd player
+        else
+            log_warn "Created player with a locked password; set one with 'sudo passwd player' (or PLAYER_PASSWORD=...) before enabling SSH login."
+        fi
     fi
+fi
+# Non-interactive builds: PLAYER_PASSWORD=... sudo -E bash script/setup.sh
+if [[ -n "${PLAYER_PASSWORD:-}" ]]; then
+    printf 'player:%s\n' "$PLAYER_PASSWORD" | chpasswd
+    log_info "Set the player password from PLAYER_PASSWORD."
 fi
 
 if getent group sudo >/dev/null && id -nG player | tr ' ' '\n' | grep -qx sudo; then
@@ -119,7 +126,7 @@ done
 # Commit + push each service's code to the team's Gitea repo whenever it starts
 for number in 1 2 3 4 5 6 7 8 9; do
     install -d -o root -g root -m 0755 "/etc/systemd/system/hackshield-service$number.service.d"
-    printf '[Service]\n# "-" never fails the service, "+" runs as root (reads /run/hackshield/boot.env)\nExecStartPost=-+/bin/bash %s/gitea_push.sh %s\n' \
+    printf '[Service]\n# TEAM_NAME/GAME_SERVER_ADDR for the push; "-" = optional file\nEnvironmentFile=-/run/hackshield/boot.env\n# "-" never fails the service, "+" runs as root\nExecStartPost=-+/bin/bash %s/gitea_push.sh %s\n' \
         "$CONTROLLER_DIR" "$number" > "/etc/systemd/system/hackshield-service$number.service.d/gitea.conf"
 done
 systemctl daemon-reload
@@ -130,7 +137,9 @@ for number in 1 2 3 4 5 6 7 8 9; do
 done
 systemctl disable --now mysql.service mongod.service >/dev/null 2>&1 || true
 systemctl enable hackshield-config.service hackshield-register.service hackshield-service-manager.service hackshield-flags.service
-systemctl start hackshield-flags.service
+# --no-block: registration retries until the game server accepts this team, and
+# building the image must not require a reachable game server.
+systemctl start --no-block hackshield-flags.service
 
 log_success "Hack & Shield service provisioning completed."
 log_info "Log out and back in as player for the hs-service-editors group membership to take effect."

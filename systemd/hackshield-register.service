@@ -10,6 +10,8 @@ Type=oneshot
 EnvironmentFile=/run/hackshield/boot.env
 ExecStart=/usr/bin/python3 /usr/local/libexec/hackshield/register_boot.py
 RemainAfterExit=yes
+# register_boot.py retries until the game server accepts the registration
+TimeoutStartSec=infinity
 
 [Install]
 WantedBy=multi-user.target

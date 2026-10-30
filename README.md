@@ -10,7 +10,7 @@ cd Hack-Shield-IIITDM
 sudo bash script/setup.sh
 ```
 
-The script installs system dependencies, creates `player`, `user1`–`user9`, and the `hs-service-editors` group, then runs all nine deployment scripts. At boot, the guest reads its QEMU boot configuration, registers with the game server, and starts only the six services and ports returned by that server. Setup prompts for a `player` password when interactive; otherwise set one later with `sudo passwd player`. Log out and back in as `player` after setup so group membership takes effect.
+The script installs system dependencies, creates `player`, `user1`–`user9`, and the `hs-service-editors` group, then runs all nine deployment scripts. At boot, the guest reads its QEMU boot configuration, registers with the game server, and starts only the six services and ports returned by that server. Setup prompts for a `player` password when interactive; otherwise set one later with `sudo passwd player`, or pass it non-interactively with `PLAYER_PASSWORD=... sudo -E bash script/setup.sh`. Log out and back in as `player` after setup so group membership takes effect.
 
 The install needs Ubuntu and Python package indexes, plus MongoDB's package repository for Service 9. Fresh installs generate per-VM flags; organizer overrides can be passed through the corresponding `SERVICE1_FLAG` through `SERVICE9_FLAG` variables and service-specific settings such as `SERVICE8_JWT_SECRET`, `SERVICE9_RESEED`, and `MONGODB_SERIES`. Service 2, 5, and 9 preserve persistent data on reruns unless their reseed option is enabled.
 

@@ -14,8 +14,12 @@ GITEA_PORT=3000
 
 [[ -d "$SRC" ]] || { echo "gitea_push: $SRC missing"; exit 0; }
 
-# shellcheck disable=SC1091
-. /run/hackshield/boot.env
+# TEAM_NAME / GAME_SERVER_ADDR come from the unit's EnvironmentFile=/run/hackshield/boot.env
+# (parsed by systemd). Never source boot.env in bash: $(...) in a team name would run.
+if [[ -z "${TEAM_NAME:-}" || -z "${GAME_SERVER_ADDR:-}" ]]; then
+    echo "gitea_push: TEAM_NAME/GAME_SERVER_ADDR not set (no boot config?); skipping $SERVICE"
+    exit 0
+fi
 
 # Same naming as the game server's gitea.get_team_credentials()
 TEAM_SLUG="$(echo "$TEAM_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')"
