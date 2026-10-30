@@ -1,11 +1,10 @@
 [Unit]
 Description=Synchronize Service 9 flag into MongoDB
-After=mongod.service
-Requires=mongod.service
 
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/hackshield/service9.env
+ExecCondition=/usr/bin/systemctl is-active --quiet hackshield-service9.service
 ExecStart=/usr/local/libexec/hackshield-service9-flag-sync
 NoNewPrivileges=true
 PrivateTmp=true

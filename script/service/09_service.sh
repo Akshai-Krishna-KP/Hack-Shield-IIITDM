@@ -89,8 +89,8 @@ grep -Fq "EnvironmentFile=$ENV_FILE" "$UNIT_SOURCE" || {
     log_error "Systemd unit must set EnvironmentFile=$ENV_FILE (this is how the authenticated MONGO_URI reaches the app)."
     exit 1
 }
-grep -Fq "Environment=PORT=$PORT" "$UNIT_SOURCE" || {
-    log_error "Systemd unit must set Environment=PORT=$PORT."
+grep -Fq "EnvironmentFile=/run/hackshield/service9.env" "$UNIT_SOURCE" || {
+    log_error "Systemd unit must load the game-server-assigned port from /run/hackshield/service9.env."
     exit 1
 }
 
@@ -178,7 +178,7 @@ runuser -u "$SERVICE_USER" -- "$VENV_DIR/bin/python" -m pip install -r "$DEST_DI
 # STEP 6: Start MongoDB and create the application credential
 # --------------------------------------------------
 
-systemctl enable --now mongod
+systemctl start mongod
 
 log_info "Waiting for MongoDB..."
 MONGO_UP=0

@@ -77,8 +77,8 @@ grep -Fq "EnvironmentFile=$ENV_FILE" "$UNIT_SOURCE" || {
     log_error "Systemd unit must set EnvironmentFile=$ENV_FILE (this is how the real JWT_SECRET reaches the app instead of the hardcoded fallback in challenge_fs/.env)."
     exit 1
 }
-grep -Fq "Environment=PORT=$PORT" "$UNIT_SOURCE" || {
-    log_error "Systemd unit must set Environment=PORT=$PORT."
+grep -Fq "EnvironmentFile=/run/hackshield/service8.env" "$UNIT_SOURCE" || {
+    log_error "Systemd unit must load the game-server-assigned port from /run/hackshield/service8.env."
     exit 1
 }
 

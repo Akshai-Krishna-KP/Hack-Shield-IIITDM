@@ -8,8 +8,8 @@ Type=simple
 User=user9
 Group=user9
 WorkingDirectory=/opt/hackshield/services/service9
+EnvironmentFile=/run/hackshield/service9.env
 EnvironmentFile=/etc/hackshield/service9.env
-Environment=PORT=5002
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
 ExecStart=/opt/hackshield/services/service9/.venv/bin/python /opt/hackshield/services/service9/app.py

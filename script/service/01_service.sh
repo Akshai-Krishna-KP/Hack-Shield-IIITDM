@@ -72,7 +72,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y \
     python3-venv \
     acl curl
 
-systemctl enable --now mysql
+systemctl start mysql
 
 # --------------------------------------------------
 # STEP 3: Generate protected SQL seed file

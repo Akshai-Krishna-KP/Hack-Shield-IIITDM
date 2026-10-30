@@ -7,6 +7,7 @@ Type=simple
 User=user1
 Group=user1
 WorkingDirectory=/opt/hackshield/services/service1
+EnvironmentFile=/run/hackshield/service1.env
 ExecStart=/usr/bin/python3 /opt/hackshield/services/service1/server.py
 Restart=on-failure
 RestartSec=2

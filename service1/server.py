@@ -6,12 +6,13 @@ from pathlib import Path
 from html import escape
 import hashlib
 import mimetypes
+import os
 import pymysql
 
 ROOT = Path("/opt/hackshield/services/service1")
 PAGES = ROOT / "pages"
 STATIC = ROOT / "static"
-HOST, PORT = "0.0.0.0", 9001
+HOST, PORT = "0.0.0.0", int(os.environ.get("PORT", "9001"))
 FLAG_PATH = "/opt/flags/flag1"
 
 def db_connect():

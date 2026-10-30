@@ -334,4 +334,4 @@ PRODUCTS = load_products()
 PRODUCT_BY_ID = {p["id"]: p for p in PRODUCTS}
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8005, threaded=True, debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8005")), threaded=True, debug=False)

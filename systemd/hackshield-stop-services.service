@@ -1,0 +1,6 @@
+[Unit]
+Description=Stop Hack & Shield services after an invalid or failed allocation
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/libexec/hackshield/manage_services.py stop-all

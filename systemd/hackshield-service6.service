@@ -7,7 +7,7 @@ Type=simple
 User=user6
 Group=user6
 WorkingDirectory=/opt/hackshield/services/service6
-Environment=PORT=8006
+EnvironmentFile=/run/hackshield/service6.env
 ExecStart=/opt/hackshield/services/service6/.venv/bin/python /opt/hackshield/services/service6/app.py
 Restart=on-failure
 RestartSec=2

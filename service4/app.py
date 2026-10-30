@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template, request
+import os
 import requests
 
 app = Flask(__name__)
@@ -33,4 +34,4 @@ def preview():
         return jsonify(error=f'Unable to fetch preview: {exc.__class__.__name__}'), 502
     return jsonify(url=url, status_code=response.status_code, content_type=response.headers.get('Content-Type',''), preview_snippet=response.text[:3000])
 
-if __name__ == '__main__': app.run(host='0.0.0.0', port=7007, debug=False)
+if __name__ == '__main__': app.run(host='0.0.0.0', port=int(os.environ.get('PORT', '7007')), debug=False)

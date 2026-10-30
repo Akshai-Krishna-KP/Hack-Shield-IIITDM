@@ -1,0 +1,15 @@
+[Unit]
+Description=Register Hack & Shield VM and fetch service allocation
+Requires=hackshield-config.service
+After=network-online.target hackshield-config.service
+Wants=network-online.target
+OnFailure=hackshield-stop-services.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/run/hackshield/boot.env
+ExecStart=/usr/bin/python3 /usr/local/libexec/hackshield/register_boot.py
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

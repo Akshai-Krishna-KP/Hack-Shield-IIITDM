@@ -11,6 +11,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SHOEMART_SESSION_SECRET") or os.urandom(32)
 DB_PATH = os.environ.get("DB_PATH", "/var/lib/hackshield/service2/shop.sqlite3")
 FLAG_PATH = "/opt/flags/flag2"
+PORT = int(os.environ.get("PORT", "4444"))
 
 def get_db():
     return sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True, timeout=3)
@@ -117,4 +118,4 @@ def not_found(_error):
     return render_template("404.html"), 404
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=4444, debug=False)
+    app.run(host="0.0.0.0", port=PORT, debug=False)

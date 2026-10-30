@@ -5,6 +5,11 @@ umask 077
 
 FLAG_FILE="/opt/flags/flag9"
 
+if ! /usr/bin/systemctl is-active --quiet hackshield-service9.service; then
+    printf '[INFO] Service 9 is inactive; skipping the MongoDB flag sync.\n'
+    exit 0
+fi
+
 if [[ ! -r "$FLAG_FILE" ]]; then
     printf '[ERROR] Service 9 flag is missing or unreadable: %s\n' "$FLAG_FILE" >&2
     exit 1

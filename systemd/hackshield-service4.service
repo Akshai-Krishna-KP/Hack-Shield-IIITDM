@@ -7,6 +7,7 @@ Type=simple
 User=user4
 Group=user4
 WorkingDirectory=/opt/hackshield/services/service4
+EnvironmentFile=/run/hackshield/service4.env
 ExecStart=/opt/hackshield/services/service4/.venv/bin/python /opt/hackshield/services/service4/run_all.py
 Restart=on-failure
 RestartSec=2

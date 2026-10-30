@@ -7,6 +7,8 @@ SCRIPT_PATH="$(readlink -f -- "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd -- "$(dirname -- "$SCRIPT_PATH")" && pwd)"
 REPO_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 SERVICE_DIR="$SCRIPT_DIR/service"
+GAME_SERVER_DIR="$SCRIPT_DIR/game_server"
+CONTROLLER_DIR="/usr/local/libexec/hackshield"
 EDITORS_GROUP="hs-service-editors"
 
 log_info()    { printf '[INFO] %s\n' "$*"; }
@@ -75,7 +77,7 @@ if [[ -f "$SUDOERS_FILE" ]]; then
     log_warn "Backed up existing player restart rules to $SUDOERS_BACKUP"
 fi
 cat > "$SUDOERS_FILE" <<'SUDOERS'
-player ALL=(root) NOPASSWD: /usr/bin/systemctl restart hackshield-service1.service, /usr/bin/systemctl restart hackshield-service2.service, /usr/bin/systemctl restart hackshield-service3.service, /usr/bin/systemctl restart hackshield-service4.service, /usr/bin/systemctl restart hackshield-service5.service, /usr/bin/systemctl restart hackshield-service6.service, /usr/bin/systemctl restart hackshield-service7.service, /usr/bin/systemctl restart hackshield-service8.service, /usr/bin/systemctl restart hackshield-service9.service
+# Service restart permissions are generated for the six allocated services at boot.
 SUDOERS
 chown root:root "$SUDOERS_FILE"
 chmod 0440 "$SUDOERS_FILE"
@@ -95,7 +97,34 @@ for service_script in "${SERVICE_SCRIPTS[@]}"; do
     log_success "Finished $(basename -- "$service_script")"
 done
 
+log_info "Installing game-server registration and service allocation controller..."
+install -d -o root -g root -m 0755 "$CONTROLLER_DIR"
+for controller_file in load_boot_config.py register_boot.py manage_services.py service_mapping.py; do
+    [[ -f "$GAME_SERVER_DIR/$controller_file" ]] || {
+        log_error "Required game-server controller file is missing: $GAME_SERVER_DIR/$controller_file"
+        exit 1
+    }
+    install -o root -g root -m 0755 "$GAME_SERVER_DIR/$controller_file" "$CONTROLLER_DIR/$controller_file"
+done
+for unit in hackshield-config.service hackshield-register.service \
+    hackshield-service-manager.service hackshield-stop-services.service; do
+    [[ -f "$REPO_DIR/systemd/$unit" ]] || {
+        log_error "Required controller unit is missing: $REPO_DIR/systemd/$unit"
+        exit 1
+    }
+    install -o root -g root -m 0644 "$REPO_DIR/systemd/$unit" "/etc/systemd/system/$unit"
+done
+systemctl daemon-reload
+
+# Prevent legacy enablement from starting unallocated services on boot.
+for number in 1 2 3 4 5 6 7 8 9; do
+    systemctl disable --now "hackshield-service$number.service" >/dev/null 2>&1 || true
+done
+systemctl disable --now mysql.service mongod.service >/dev/null 2>&1 || true
+systemctl enable hackshield-config.service hackshield-register.service hackshield-service-manager.service
+systemctl start hackshield-service-manager.service
+
 log_success "Hack & Shield service provisioning completed."
 log_info "Log out and back in as player for the hs-service-editors group membership to take effect."
-log_info "Configure QEMU hostfwd rules on the host for ports 9001, 3306, 4444, 1337, 7007, 8005, 8006, 5007, 5001, and 5002. Do not forward 7108, 6006, or MongoDB port 27017."
-log_info "Services 1-9 are deployed; challenge selection, scoring, monitoring, network isolation, and VM resets are not provisioned by this script."
+log_info "Configure QEMU hostfwd rules for every candidate app port: 9001, 4444, 1337, 7007, 8005, 8006, 5007, 5001, and 5002; forward 3306 for the Service 1 MySQL challenge. Do not forward 7108, 6006, or MongoDB port 27017."
+log_info "At boot, the game server assigns six services and ports; only those six units are started."

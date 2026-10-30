@@ -7,6 +7,7 @@ Type=simple
 User=user2
 Group=user2
 WorkingDirectory=/opt/hackshield/services/service2
+EnvironmentFile=/run/hackshield/service2.env
 Environment=DB_PATH=/var/lib/hackshield/service2/shop.sqlite3
 EnvironmentFile=/etc/hackshield/service2.env
 ExecStart=/opt/hackshield/services/service2/.venv/bin/python /opt/hackshield/services/service2/app.py

@@ -1,0 +1,13 @@
+[Unit]
+Description=Start the six Hack & Shield services assigned by the game server
+Requires=hackshield-register.service
+After=hackshield-register.service
+OnFailure=hackshield-stop-services.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/libexec/hackshield/manage_services.py apply
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
