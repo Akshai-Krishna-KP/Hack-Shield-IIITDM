@@ -78,25 +78,31 @@ def apply_mapping():
     os.chmod(RUN_DIR, 0o755)
     stop_all()
 
-    try:
-        for number, port in mapping.items():
-            env_file = RUN_DIR / f"service{number}.env"
-            temporary = env_file.with_suffix(".env.tmp")
-            temporary.write_text(f"PORT={port}\n", encoding="ascii")
-            os.chmod(temporary, 0o644)
-            os.replace(temporary, env_file)
+    for number, port in mapping.items():
+        env_file = RUN_DIR / f"service{number}.env"
+        temporary = env_file.with_suffix(".env.tmp")
+        temporary.write_text(f"PORT={port}\n", encoding="ascii")
+        os.chmod(temporary, 0o644)
+        os.replace(temporary, env_file)
 
-        if 1 in mapping:
-            systemctl("start", "mysql.service")
-        for number in mapping:
-            systemctl("start", f"hackshield-service{number}.service")
-        for number in mapping:
-            systemctl("is-active", "--quiet", f"hackshield-service{number}.service")
-        write_sudoers(mapping)
-        print("Started exactly six allocated services.")
-    except Exception:
-        stop_all()
-        raise
+    # Start every allocated service independently: one broken service (e.g. a
+    # bad patch before a reboot) must not take the other five down with it.
+    failed = []
+    if 1 in mapping and systemctl("start", "mysql.service", check=False).returncode != 0:
+        print("[WARN] mysql.service failed to start; service1 may not work", file=sys.stderr)
+    for number in mapping:
+        unit = f"hackshield-service{number}.service"
+        if systemctl("start", unit, check=False).returncode != 0 or \
+                systemctl("is-active", "--quiet", unit, check=False).returncode != 0:
+            failed.append(number)
+            print(f"[WARN] {unit} failed to start", file=sys.stderr)
+
+    # Players may restart all six allocated units, including failed ones they fix.
+    write_sudoers(mapping)
+    started = [n for n in mapping if n not in failed]
+    print(f"Started allocated services {started}; failed {failed}.")
+    if not started:
+        raise RuntimeError("none of the allocated services started")
 
 
 def main():

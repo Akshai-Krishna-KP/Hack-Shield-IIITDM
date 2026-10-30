@@ -1,0 +1,14 @@
+[Unit]
+Description=Rotate Hack & Shield flags for the allocated services
+# Wants (not Requires): a failed or re-run manager must not stop flag rotation
+Wants=hackshield-service-manager.service
+After=hackshield-service-manager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/libexec/hackshield/rotate_flags.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

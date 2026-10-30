@@ -101,9 +101,9 @@ systemctl disable --now "$LEGACY_SERVICE5_NAME" 2>/dev/null || true
 log_info "Deploying public WikiLink portal to $SERVICE4_DEST..."
 install -d -o root -g hs-service-editors -m 2775 "$SERVICE4_DEST"
 cp -a "$SERVICE4_SOURCE/." "$SERVICE4_DEST/"
-chown -R root:hs-service-editors "$SERVICE4_DEST"
-find "$SERVICE4_DEST" -type d -exec chmod 2775 {} +
-find "$SERVICE4_DEST" -type f -exec chmod 0664 {} +
+find "$SERVICE4_DEST" -path "$SERVICE4_DEST/.venv" -prune -o -exec chown root:hs-service-editors {} +
+find "$SERVICE4_DEST" -path "$SERVICE4_DEST/.venv" -prune -o -type d -exec chmod 2775 {} +
+find "$SERVICE4_DEST" -path "$SERVICE4_DEST/.venv" -prune -o -type f -exec chmod 0664 {} +
 
 if [[ ! -x "$SERVICE4_DEST/.venv/bin/python" ]]; then
     log_info "Creating Service 4 virtual environment..."
@@ -111,6 +111,8 @@ if [[ ! -x "$SERVICE4_DEST/.venv/bin/python" ]]; then
 fi
 "$SERVICE4_DEST/.venv/bin/python" -m pip install --upgrade pip
 "$SERVICE4_DEST/.venv/bin/python" -m pip install -r "$SERVICE4_DEST/requirements.txt"
+# user4 must be able to execute its own venv (root-owned 0750 venv => 203/EXEC)
+chown -R user4:user4 "$SERVICE4_DEST/.venv"
 
 # -----------------------------
 # STEP 6: Retire the old separate Service 5 deployment
