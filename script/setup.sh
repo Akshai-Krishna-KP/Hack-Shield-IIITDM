@@ -134,5 +134,5 @@ systemctl start hackshield-flags.service
 
 log_success "Hack & Shield service provisioning completed."
 log_info "Log out and back in as player for the hs-service-editors group membership to take effect."
-log_info "Configure QEMU hostfwd rules for every candidate app port: 9001, 4444, 1337, 7007, 8005, 8006, 5007, 5001, and 5002; forward 3306 for the Service 1 MySQL challenge. Do not forward 7108, 6006, or MongoDB port 27017."
+log_info "Configure QEMU hostfwd for TCP 5000-5050 (the game server assigns each service a random port in that range; see script/run-hackshield.sh); forward 3306 for the Service 1 MySQL challenge. Do not forward 7108, 6006, or MongoDB port 27017."
 log_info "At boot, the game server assigns six services and ports; only those six units are started."

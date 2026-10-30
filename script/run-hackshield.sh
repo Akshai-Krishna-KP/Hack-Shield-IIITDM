@@ -50,13 +50,13 @@ echo "Team: $TEAM_NAME"
 echo "Game Server: $GAME_SERVER_ADDR"
 echo
 
-# Candidate app-port pool (must match FORWARDED_SERVICE_PORTS in
-# script/game_server/service_mapping.py and the game server's port pool).
-# The game server assigns six services to six of these ports at boot.
-SERVICE_PORTS=(9001 4444 1337 7007 8005 8006 5007 5001 5002)
-HOSTFWD="hostfwd=tcp::${SSH_PORT:-2222}-:22,hostfwd=tcp::3306-:3306"
-for port in "${SERVICE_PORTS[@]}"; do
-    HOSTFWD+=",hostfwd=tcp::${port}-:${port}"
+# The game server assigns each of the six services a random port in 5000-5050
+# (must match FORWARDED_SERVICE_PORTS in script/game_server/service_mapping.py),
+# so forward the whole range to the same ports on the host.
+# Keep SSH on host port 2222 -> guest 22, and MySQL 3306 for the Service 1 challenge.
+NIC_OPTS="user,model=virtio-net-pci,hostfwd=tcp::${SSH_PORT:-2222}-:22,hostfwd=tcp::3306-:3306"
+for port in {5000..5050}; do
+    NIC_OPTS+=",hostfwd=tcp::${port}-:${port}"
 done
 
 qemu-system-x86_64 \
@@ -69,5 +69,5 @@ qemu-system-x86_64 \
     -drive file="${VM_IMAGE:-vm/hacksheild.qcow2}",format=qcow2,if=virtio \
     -boot order=c \
     -fw_cfg name=opt/org.hackshield/boot-config,file="$BOOT_CONFIG" \
-    -nic user,model=virtio-net-pci,"$HOSTFWD" \
+    -nic "$NIC_OPTS" \
     "$@"

@@ -6,7 +6,8 @@ import re
 SERVICE_IDS = set(range(1, 10))
 REQUIRED_SERVICE_COUNT = 6
 # Every port in this pool must also be forwarded by the QEMU host launcher.
-FORWARDED_SERVICE_PORTS = {9001, 4444, 1337, 7007, 8005, 8006, 5007, 5001, 5002}
+# The game server picks random ports from 5000-5050 (run-hackshield.sh forwards the whole range).
+FORWARDED_SERVICE_PORTS = set(range(5000, 5051))
 
 
 def _service_id(value):
